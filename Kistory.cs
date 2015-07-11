@@ -57,7 +57,7 @@ namespace Kistory
         public void Awake()            
         {
             // it might help
-            report = ReportManager.Instance();
+            report = ReportManager.Instance(); // Call the instance
             _windows = new WindowManager();
             
             this.eventTime = DateTime.Now; // ?

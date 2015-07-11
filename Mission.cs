@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Kistory
 {
-    // Mission correspond to single flying vessel
+    // Class Mission correspond to single flying vessel (I hope)
     // Vessel should have a probe or crew capsule
     class Mission
     {        
-        public Guid missionId;                  // Unique ID for the mission
-        public Boolean missionApproved = false; // false if mission was not created.
+        public Guid missionId;                  // Unique ID for the mission. Maybe we should take it from the 
+        public Boolean missionApproved = false; // false if mission was not created. We should check this flag after we create an instance of the mission and we expect that mission is ok
         
         private String missionName;
         private List<Entry> entries = new List<Entry>(); // Container of Entries
@@ -65,6 +65,7 @@ namespace Kistory
             //return type == VesselType.Ship | type == VesselType.Probe;
             if (type != VesselType.SpaceObject & type != VesselType.EVA & type != VesselType.Flag & type != VesselType.Debris)
             {
+            // Debug information
             Debug.Log("[Kistory] Vessel debug information: ");
             Debug.Log("[Kistory] ves.name: " + ves.name);
             Debug.Log("[Kistory] ves.vesselName: " + ves.vesselName);
@@ -105,7 +106,10 @@ namespace Kistory
              * ves.vesselType: Ship (!) <- ?
              */
 
-            return (ves.isCommandable | ves.IsControllable) & (ves.missionTime < 0.1); // Let's try this Check the ves type and mission time.
+            // (ves.missionTime < 0.1); Condition for the mission time. It should be checked only if we create a new flight.
+
+            // This conditions should be ok
+            return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe); 
         }
 
 

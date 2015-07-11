@@ -43,14 +43,20 @@ namespace Kistory
         private ReportManager()
         {
             Debug.Log("[Kistory] New ReportManager Created");
+            // === Event No Active Vessel (?) === //
+
             GameEvents.onGameStateCreated.Add(this.on_game_created); // game created on loaded
             GameEvents.onGameStateSaved.Add(this.on_game_save);      // game saved. 
             //GameEvents.onGameStateLoad.Add(on_load_game); // should be exculded
 
-
             GameEvents.onVesselCreate.Add(this.on_create); // Here we propaply need to create a new mission
+
+            // === Events with Active Vessel === //
+
             GameEvents.onLaunch.Add(this.on_launch);
+
             GameEvents.onCrewOnEva.Add(this.on_EVA);
+            
             //GameEvents.onCrash.Add(this.on_crash); // We don't need this event
             GameEvents.onPartDie.Add(this.on_destroyed); // That is good event to capture things
             GameEvents.onPartExplode.Add(this.on_explode); // Maybe explode?
@@ -156,7 +162,7 @@ namespace Kistory
             return path;
         }
 
-        public void on_create(Vessel ves) // Triggered by creating a new vessel.
+        public void on_create(Vessel ves) // Triggered by creating a new vessel. Apparantelly we create a new mission
         {
             // This event should be called only if we have a new mission
             if (ves !=null)
@@ -169,12 +175,11 @@ namespace Kistory
                     Debug.Log("[Kistory] on_create approved");                    
                     M.add_entry( MissionStrings.CREATE );
                     this.add_mission(M);
-                    
                 }
             }
         }
 
-        public void on_launch(EventReport data) // Triffered on launch
+        public void on_launch(EventReport data) // Triggered on launch
         {
             Debug.Log("[Kistory] on_launch");
             this.add_message(MissionStrings.LAUNCH);
@@ -193,7 +198,6 @@ namespace Kistory
             Debug.Log("[Kistory] on_explode: " + r.magnitude.ToString());
             this.add_message(MissionStrings.EXPLODE + " :" + r.magnitude.ToString());
         }
-
 
         public void on_destroyed(Part part)
         {
@@ -315,10 +319,17 @@ namespace Kistory
 
         public void clear()
         {
+            GameEvents.onGameStateCreated.Remove(this.on_game_created); 
+            GameEvents.onGameStateSaved.Remove(this.on_game_save);
+
             GameEvents.onVesselCreate.Remove(this.on_create);
+
             GameEvents.onLaunch.Remove(this.on_launch);
+
             GameEvents.onCrewOnEva.Remove(this.on_EVA);
-            GameEvents.onCrash.Remove(this.on_crash);
+
+            GameEvents.onPartDie.Remove(this.on_destroyed); 
+            GameEvents.onPartExplode.Remove(this.on_explode); 
 
         }
     }
