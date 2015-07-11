@@ -21,8 +21,8 @@ namespace Kistory
         private readonly int _windowMainId = UnityEngine.Random.Range(8000000, 9000000);   // unique ID for the window
         private readonly int _windowSecondId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
 
-        private Rect _windowMainRect = new Rect(100, 100, 200, 200);   // position and size
-        private Rect _windowSecondRect = new Rect(400, 100, 400, 200); // position and size
+        private Rect _windowMainRect = new Rect(100, 100, 600, 400);   // position and size
+        private Rect _windowSecondRect = new Rect(400, 100, 800, 400); // position and size
 
         private Vector2 _scrollMainPosition = new Vector2();   // Scroll inside the window
         private Vector2 _scrollSecondPosition = new Vector2(); // Scroll inside the window

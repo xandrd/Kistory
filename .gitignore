@@ -1,1 +1,5 @@
 obj/
+*.csproj
+*.csproj.*
+*.sln
+*.v12.*

@@ -65,6 +65,9 @@ namespace Kistory
         public void on_game_created(Game newgame)
         {
             // We eather create a new game of load the existing game
+
+            // Howeaver, revearting the flight is somethig different.
+            // I don't know how to exclude revert at that moment.
             Debug.Log("[Kistory] on_game_created");
             
 
