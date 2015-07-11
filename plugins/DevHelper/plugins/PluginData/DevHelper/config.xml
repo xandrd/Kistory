@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <bool name="autoLoadSave">1</bool>
+    <string name="autoLoadSaveName">Test</string>
+    <bool name="autoLoadScene">0</bool>
+    <string name="autoLoadSceneName">SPH</string>
+</config>
