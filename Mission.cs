@@ -47,25 +47,6 @@ namespace Kistory
             }
             else this.missionApproved = false;
         }
-
-        // We can try to create the mission if the vessel if we have an Active Vessel
-        /* == Early version of the constructor. We not use this anymore == 
-        public Mission()
-        {
-            
-            if (FlightGlobals.ActiveVessel != null & this.is_vessel_fits_to_mission(FlightGlobals.ActiveVessel))
-            {
-                Debug.Log("[Kistory] Mission is creating by Active Vessel");
-
-                this.missionId = FlightGlobals.ActiveVessel.id;
-                this.missionApproved = true;
-                this.missionName = FlightGlobals.ActiveVessel.GetName();
-                this.missionTime = HighLogic.CurrentGame.flightState.universalTime;
-            }
-            else this.missionApproved = false;
-        }
-         * 
-         */
  
         // Create mission from the Vessel
         public Boolean is_vessel_fits_to_mission(Vessel ves)
@@ -193,6 +174,11 @@ namespace Kistory
             t = t.AddSeconds(this.missionTime);
             return t.ToString("dd-MM-yy HH:mm:ss");
             //return this.missionTime.ToString();
+        }
+
+        public String get_mission_string()
+        {
+            return "[" + this.get_time_str() + "] " + " Mission: " + this.get_name();
         }
 
         #endregion

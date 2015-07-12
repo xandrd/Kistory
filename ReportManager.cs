@@ -71,101 +71,6 @@ namespace Kistory
 
         #region Evet Processing
 
-        /*
-        public void on_game_created(Game newgame)
-        {
-            // We eather create a new game of load the existing game
-
-            // Howeaver, revearting the flight is somethig different.
-            // I don't know how to exclude revert at that moment.
-            Debug.Log("[Kistory] on_game_created");
-            return;
-
-            String filePath = this.get_root_path() + "/saves/" + HighLogic.SaveFolder;
-
-            var nodeGame = ConfigNode.Load(filePath + "/Kistory.sav"); // Generate warning. It is better the check the file existance
-            
-            if (nodeGame != null) 
-            {
-                Debug.Log("[Kistory] Load Game");
-                this.clear_missions();
-                
-                // REPORT
-                String nodeName = "Report";
-                ConfigNode nodeReport = new ConfigNode();
-                if (nodeGame.HasNode(nodeName)) // reserved for future if we will add variables to the report node
-                {
-                    nodeReport = nodeGame.GetNode(nodeName);
-                }
-                else
-                {
-                    nodeReport = nodeGame;
-                }
-                    // MISSION
-                    nodeName = "Mission";
-                    if (nodeReport.HasNode(nodeName))
-                    {
-                        ConfigNode[] nodeMissions = nodeReport.GetNodes(nodeName);
-                        foreach (ConfigNode nodeMission in nodeMissions)
-                        {
-                            if (nodeMission.HasValue("missionId"))
-                            {
-                                String missionId = nodeMission.GetValue("missionId");
-                                String missionName = nodeMission.GetValue("missionName");
-                                // create mission
-                                Mission M = new Mission(new Guid(missionId), missionName);
-
-                                nodeName = "Entry";
-                                if (nodeMission.HasNode("Entry"))
-                                {
-                                    // ENTRY
-                                    ConfigNode[] nodeEnties = nodeMission.GetNodes("Entry");
-                                    foreach (ConfigNode nodeEntie in nodeEnties)
-                                    {
-                                        if (nodeEntie.HasValue("message"))
-                                        {
-                                            M.add_entry(nodeEntie.GetValue("message"));
-                                        }
-                                    }
-                                }
-
-                                this.add_mission(M);
-                            }
-                        }
-                    }
-            }
-            else
-            {
-                Debug.Log("[Kistory] Save file no found. New Game.");
-                this.clear_missions();
-            }
-        }
-        public void on_game_save(Game thisGame)
-        {
-
-            Debug.Log("[Kistory] on_game_save");
-
-            // Basic container. 
-            var nodeReport = new ConfigNode("Report");
-
-            // Walk thought all missions
-            foreach (Mission M in this.missions)
-            {
-                var nodeMission = nodeReport.AddNode("Mission");
-                nodeMission.AddValue("missionId", M.missionId);
-                nodeMission.AddValue("missionName", M.get_name());
-
-                // Walk thought all messages of the mission
-                foreach (Entry E in M.get_entries())
-                {
-                    var nodeEntry = nodeMission.AddNode("Entry");
-                    nodeEntry.AddValue("message", E.get_message()); // one message per Entry at the moment
-                }
-            }
-            String filePath = this.get_root_path() + "/saves/" + HighLogic.SaveFolder;
-            nodeReport.Save(filePath + "/Kistory.sav");
-        }
-        */
         private void on_game_load(ConfigNode nodeGame)
         {
             if (nodeGame != null)
@@ -380,27 +285,11 @@ namespace Kistory
 
         #endregion
 
-        #region Mission Properties
-
+        #region Report Manager Properties
 
 
         #endregion
 
-
-        /*
-        // Create a new mission by vessel
-        private void add_mission(Vessel ves){            
-            Debug.Log("[Kistory] Add mission from Report by Vessel: " + ves.vesselType.ToString());
-            if(ves.vesselType == VesselType.Ship || ves.vesselType == VesselType.Probe )
-                this.missions.Add(new Mission(ves));
-        }
-
-        // Create a new mission by id
-        private void add_mission(Guid id, String name)
-        {
-            Debug.Log("[Kistory] Add mission from Report by id: " + id.ToString());
-            this.missions.Add(new Mission(id, name));
-        }*/
 
         #region Add Mission
         // Create a new mission by Mission object. Used to crate and load mission.
@@ -477,9 +366,6 @@ namespace Kistory
         // Calld in the descructor of the Kistory plugin
         public void clear()
         {
-            //GameEvents.onGameStateCreated.Remove(this.on_game_created); 
-            //GameEvents.onGameStateSaved.Remove(this.on_game_save);
-
             GameEvents.onGameStateLoad.Remove(this.on_game_load);
             GameEvents.onGameStateSave.Remove(this.on_game_save);
 

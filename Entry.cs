@@ -16,6 +16,7 @@ namespace Kistory
         private double time;
         private String screenShot;
 
+        #region create Entry
         // Simple creation of the Entry
         public Entry(String m)
         {
@@ -33,6 +34,25 @@ namespace Kistory
             Debug.Log("[Kistory] Entry: " + t + " | " + m);
         }
 
+        #endregion
+        
+        #region Set Properties
+        public void set_time(double t)
+        {
+            this.time = t;
+        }
+
+        #endregion
+
+        #region Get Properties
+        public String get_message()
+        {
+            return  this.message;
+        }
+        public double get_time()
+        {
+            return this.time;
+        }
         public String get_time_str()
         {
             DateTime t = new DateTime();
@@ -42,24 +62,13 @@ namespace Kistory
             //return this.time.ToString();
         }
 
-        public String get_message()
-        {
-            return  this.message;
-        }
-
-        public void set_time(double t)
-        {
-            this.time = t;
-        }
-
-        public double get_time()
-        {
-            return this.time;
-        }
-
-        public String get_string()
+        // This function format the entry string
+        public String get_entry_string()
         {
             return "[" + this.get_time_str() + "]" + this.message;
         }
-    }
+
+        #endregion
+
+     }
 }
