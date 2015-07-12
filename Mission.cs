@@ -16,14 +16,18 @@ namespace Kistory
         private String missionName;
         private List<Entry> entries = new List<Entry>(); // Container of Entries
 
+        private double missionTime;
+
         // To create mission we need to udentity the ID
         // This needs to load missions
-        public Mission(Guid id, String name)
+        public Mission(Guid id, String name, double time)
         {
             Debug.Log("[Kistory] Mission is creating by Id: " + id.ToString());
             this.missionId = id;
             this.missionName = name;
             this.missionApproved = true;
+            this.missionTime = time;
+         
         }
 
         // We can create mission if we know the Vessel
@@ -37,6 +41,7 @@ namespace Kistory
                 this.missionId = ves.id;
                 this.missionApproved = true;
                 this.missionName = ves.GetName();
+                this.missionTime = HighLogic.CurrentGame.flightState.universalTime;
             }
             else this.missionApproved = false;
         }
@@ -52,6 +57,7 @@ namespace Kistory
                 this.missionId = FlightGlobals.ActiveVessel.id;
                 this.missionApproved = true;
                 this.missionName = FlightGlobals.ActiveVessel.GetName();
+                this.missionTime = HighLogic.CurrentGame.flightState.universalTime;
             }
             else this.missionApproved = false;
         }
@@ -112,13 +118,44 @@ namespace Kistory
             return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe); 
         }
 
-
-        //...
+        // general function to add message
         public void add_entry(String message)
         {
-            Debug.Log("[Kistory] Add message from the Mission " + message);
-            this.entries.Add(new Entry(message));
+            Debug.Log("[Kistory] Add message from the Mission class: " + message);
+            Entry e = new Entry(message);
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                e.set_time(FlightGlobals.ActiveVessel.missionTime);
+            }
+            this.entries.Add(e);
         }
+
+        // Add antry not from Acrive vessel
+        public void add_entry(Vessel ves, String message)
+        {
+            Debug.Log("[Kistory] Add message from the Mission class: " + message);
+            Entry e = new Entry(message);
+            if (ves != null)
+            {
+                e.set_time(ves.missionTime);
+            }
+            this.entries.Add(e);
+        }
+
+        // Function for loader
+        public void add_entry(String message, double time)
+        {
+            Debug.Log("[Kistory] Add message from the Mission class: " + message);
+            Entry e = new Entry(message, time);
+            this.entries.Add(e);
+        }
+
+        // Most usefull case
+        public void add_entry(Entry e)
+        {
+            this.entries.Add(e);
+        }
+
 
         public List<Entry> get_entries()
         {
@@ -128,6 +165,19 @@ namespace Kistory
         public String get_name()
         {
             return this.missionName;
+        }
+    
+        public double get_time()
+        {
+            return this.missionTime;
+        }
+
+        public String get_time_str()
+        {
+            DateTime t = new DateTime();
+            t.AddSeconds(this.missionTime);
+            return t.ToString("dd-MM-yy HH:mm:ss");
+            //return this.missionTime.ToString();
         }
     }
 }

@@ -24,9 +24,11 @@ namespace Kistory
         {
             public static String CREATE = "The new mission";
             public static String LAUNCH = "Lauched!";
-            public static String EVA = "Extra-Vehicular Activity";
+            public static String EVA = "Kerbal does to Extra-Vehicular Activity";
+            public static String KILLED = "Kerbal killed";
+            public static String BOARD = "Kerbal board";
             public static String CRASH = "Chash!";
-            public static String DESTROYED = "Part destroyed";
+            public static String DESTROYED = "Structural falure. Part destroyed";
             public static String EXPLODE = "Part exploded";
         }
 
@@ -45,23 +47,29 @@ namespace Kistory
             Debug.Log("[Kistory] New ReportManager Created");
             // === Event No Active Vessel (?) === //
 
-            GameEvents.onGameStateCreated.Add(this.on_game_created); // game created on loaded
-            GameEvents.onGameStateSaved.Add(this.on_game_save);      // game saved. 
-            //GameEvents.onGameStateLoad.Add(on_load_game); // should be exculded
+            //GameEvents.onGameStateCreated.Add(this.on_game_created); // game created on loaded
+            //GameEvents.onGameStateSaved.Add(this.on_game_save);      // game saved. 
+            GameEvents.onGameStateLoad.Add(this.on_game_load); // should be exculded (?)
+            GameEvents.onGameStateSave.Add(this.on_game_save); 
 
             GameEvents.onVesselCreate.Add(this.on_create); // Here we propaply need to create a new mission
-
+            
+            GameEvents.onCrewBoardVessel.Add(this.on_board);
+            GameEvents.onCrewKilled.Add(this.on_killed);
             // === Events with Active Vessel === //
 
             GameEvents.onLaunch.Add(this.on_launch);
 
             GameEvents.onCrewOnEva.Add(this.on_EVA);
             
+
             //GameEvents.onCrash.Add(this.on_crash); // We don't need this event
             GameEvents.onPartDie.Add(this.on_destroyed); // That is good event to capture things
-            GameEvents.onPartExplode.Add(this.on_explode); // Maybe explode?
+            GameEvents.onPartExplode.Add(this.on_explode); // We not going to track explosion. It just an explosion, nothig that is related to parts. Howeaver is happens only when part is exploading.
+            
         }
 
+        /*
         public void on_game_created(Game newgame)
         {
             // We eather create a new game of load the existing game
@@ -69,9 +77,10 @@ namespace Kistory
             // Howeaver, revearting the flight is somethig different.
             // I don't know how to exclude revert at that moment.
             Debug.Log("[Kistory] on_game_created");
-            
+            return;
 
             String filePath = this.get_root_path() + "/saves/" + HighLogic.SaveFolder;
+
             var nodeGame = ConfigNode.Load(filePath + "/Kistory.sav"); // Generate warning. It is better the check the file existance
             
             if (nodeGame != null) 
@@ -129,9 +138,9 @@ namespace Kistory
                 this.clear_missions();
             }
         }
-
         public void on_game_save(Game thisGame)
-        {            
+        {
+
             Debug.Log("[Kistory] on_game_save");
 
             // Basic container. 
@@ -143,17 +152,98 @@ namespace Kistory
                 var nodeMission = nodeReport.AddNode("Mission");
                 nodeMission.AddValue("missionId", M.missionId);
                 nodeMission.AddValue("missionName", M.get_name());
-                
+
                 // Walk thought all messages of the mission
                 foreach (Entry E in M.get_entries())
                 {
-                    var nodeEntry = nodeMission.AddNode("Entry");                    
-                        nodeEntry.AddValue("message", E.get_message() ); // one message per Entry at the moment
+                    var nodeEntry = nodeMission.AddNode("Entry");
+                    nodeEntry.AddValue("message", E.get_message()); // one message per Entry at the moment
                 }
             }
             String filePath = this.get_root_path() + "/saves/" + HighLogic.SaveFolder;
             nodeReport.Save(filePath + "/Kistory.sav");
         }
+        */
+        public void on_game_load(ConfigNode nodeGame)
+        {
+            if (nodeGame != null)
+            {
+                Debug.Log("[Kistory] Loading game...");
+                this.clear_missions();
+
+                // REPORT
+                String nodeName = "Kistory";
+                ConfigNode nodeReport = new ConfigNode();
+                if (nodeGame.HasNode(nodeName)) // reserved for future if we will add variables to the report node
+                {
+                    nodeReport = nodeGame.GetNode(nodeName);
+                }
+                else
+                {
+                    nodeReport = nodeGame;
+                }
+                // MISSION
+                nodeName = "Mission";
+                if (nodeReport.HasNode(nodeName))
+                {
+                    ConfigNode[] nodeMissions = nodeReport.GetNodes(nodeName);
+                    foreach (ConfigNode nodeMission in nodeMissions)
+                    {
+                        if (nodeMission.HasValue("missionId"))
+                        {
+                            String missionId = nodeMission.GetValue("missionId");
+                            String missionName = nodeMission.GetValue("missionName");
+                            double missionTime = Convert.ToDouble(nodeMission.GetValue("missionTime"));
+                            // create mission
+                            Mission M = new Mission(new Guid(missionId), missionName, missionTime);
+
+                            nodeName = "Entry";
+                            if (nodeMission.HasNode("Entry"))
+                            {
+                                // ENTRY
+                                ConfigNode[] nodeEnties = nodeMission.GetNodes("Entry");
+                                foreach (ConfigNode nodeEntie in nodeEnties)
+                                {
+                                    if (nodeEntie.HasValue("message"))
+                                    {
+                                        M.add_entry(nodeEntie.GetValue("message"), Convert.ToDouble(nodeEntie.GetValue("time")));
+                                    }
+                                }
+                            }
+
+                            this.add_mission(M);
+                        }
+                    }
+                }
+            }
+        }
+        public void on_game_save(ConfigNode node)
+
+        {
+            Debug.Log("[Kistory] on_game_save node");
+
+            // Walk thought all missions
+            
+            var nodeKistory = node.AddNode("Kistory");
+
+            foreach (Mission M in this.missions)
+            {
+                var nodeMission = nodeKistory.AddNode("Mission");
+                nodeMission.AddValue("missionId", M.missionId);
+                nodeMission.AddValue("missionName", M.get_name());
+                nodeMission.AddValue("missionTime", M.get_time());
+
+                // Walk thought all messages of the mission
+                foreach (Entry E in M.get_entries())
+                {
+                    var nodeEntry = nodeMission.AddNode("Entry");
+                    nodeEntry.AddValue("message", E.get_message()); 
+                    nodeEntry.AddValue("time", E.get_time()); 
+                }
+            }
+
+        }
+
 
         // (C) FinalFrontier mod
         private String get_root_path()
@@ -175,8 +265,11 @@ namespace Kistory
                 Mission M = new Mission(ves); // Possible new mission
                 if (M.missionApproved) // Mission was created
                 {
-                    Debug.Log("[Kistory] on_create approved");                    
-                    M.add_entry( MissionStrings.CREATE );
+                    Debug.Log("[Kistory] on_create approved");
+                    Entry E = new Entry(MissionStrings.CREATE);
+                    E.set_time((double) 0);
+
+                    M.add_entry( E );
                     this.add_mission(M);
                 }
             }
@@ -191,27 +284,41 @@ namespace Kistory
 
         public void on_EVA(GameEvents.FromToAction<Part, Part> data)
         {
-            Debug.Log("[Kistory] on_EVA");
-            this.add_message(MissionStrings.EVA);
+            Debug.Log("[Kistory] on_EVA " + data.to.vessel.vesselName);
+            this.add_message(MissionStrings.EVA + " : " + data.to.vessel.vesselName);
             //this.make_screenshot("EVA");
+        }
+
+        public void on_killed(EventReport report)
+        {
+            // If Kerbin died outside the vessel we would not be able to find that.
+            Debug.Log("[Kistory] on_killed " + report.sender);
+            this.add_message(MissionStrings.KILLED + " " + report.sender);
+        }
+
+        public void on_board(GameEvents.FromToAction<Part, Part> data)
+        {
+            Debug.Log("[Kistory] on_board " + data.from.vessel.vesselName);
+            this.add_message(data.to.vessel, MissionStrings.BOARD + " : " + data.from.vessel.vesselName);
         }
 
         public void on_explode(GameEvents.ExplosionReaction r)
         {
             Debug.Log("[Kistory] on_explode: " + r.magnitude.ToString());
-            this.add_message(MissionStrings.EXPLODE + " :" + r.magnitude.ToString());
+            //this.add_message(MissionStrings.EXPLODE + " :" + r.magnitude.ToString());
         }
 
         public void on_destroyed(Part part)
         {
-            
-            Debug.Log("[Kistory] on_destroyed: " + part.name);
-            foreach (PartModule module in part.Modules)
-                Debug.Log("[Kistory] on_destroyed: [" + module.GUIName + "] " + module.GetInfo()   ); //[0].GetInfo()
 
+            Debug.Log("[Kistory] on_destroyed: " + part.partInfo.title);
             
-               
-            this.add_message(MissionStrings.DESTROYED + " :" + part.name);
+           // foreach (PartModule module in part.Modules)
+           //     Debug.Log("[Kistory] on_destroyed: [" + module.moduleName + "] " + module.GetInfo() + " | " + module.guiText + " | " + module.name); //[0].GetInfo()
+
+
+
+            this.add_message(MissionStrings.DESTROYED + " :" + part.partInfo.title);
         }
 
         public void on_crash(EventReport data)
@@ -303,18 +410,38 @@ namespace Kistory
                 M.add_entry(message);
         }
 
+        // Add message to mission related to other vessel
+        private void add_message(Vessel ves, String message)
+        {
+
+            Debug.Log("[Kistory] add_message: " + message);
+
+            Mission M = this.find_the_mission(ves);
+            if (M != null)
+                M.add_entry(ves, message);
+        }
+
+        private Mission find_the_mission(Vessel ves)
+        {
+            Guid id = ves.id; // this is not very good for undocing. New GUID will be created in that case...
+            foreach (Mission mission in this.missions)
+                if (mission.missionId == id)
+                {
+                    Debug.Log("[Kistory] Mission found: " + id.ToString());
+                    
+                    return mission;
+                }
+            Debug.Log("[Kistory] MISSION NOT FOUND FROM find_the_mission");
+            return null;
+        }
+
         private Mission get_current_mission()
         {
             if(FlightGlobals.ActiveVessel != null)
             {
-                Guid id = FlightGlobals.ActiveVessel.id; // this is not very good for undocing. New GUID will be created in that case...
-                foreach (Mission mission in this.missions)
-                    if (mission.missionId == id)
-                    {
-                        Debug.Log("[Kistory] Mission found: " + id.ToString());
-                        return mission;
-                    }
+                return find_the_mission(FlightGlobals.ActiveVessel);
             }
+
 
             Debug.Log("[Kistory] MISSION NOT FOUND ");
             return null; // ??
@@ -322,14 +449,19 @@ namespace Kistory
 
         public void clear()
         {
-            GameEvents.onGameStateCreated.Remove(this.on_game_created); 
-            GameEvents.onGameStateSaved.Remove(this.on_game_save);
+            //GameEvents.onGameStateCreated.Remove(this.on_game_created); 
+            //GameEvents.onGameStateSaved.Remove(this.on_game_save);
+
+            GameEvents.onGameStateLoad.Remove(this.on_game_load);
+            GameEvents.onGameStateSave.Remove(this.on_game_save);
 
             GameEvents.onVesselCreate.Remove(this.on_create);
 
             GameEvents.onLaunch.Remove(this.on_launch);
 
             GameEvents.onCrewOnEva.Remove(this.on_EVA);
+            GameEvents.onCrewBoardVessel.Remove(this.on_board);
+            GameEvents.onCrewKilled.Remove(this.on_killed);
 
             GameEvents.onPartDie.Remove(this.on_destroyed); 
             GameEvents.onPartExplode.Remove(this.on_explode); 
