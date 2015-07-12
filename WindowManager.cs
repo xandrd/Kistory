@@ -130,7 +130,7 @@ namespace Kistory
         {
             _scrollSecondPosition = GUILayout.BeginScrollView(_scrollSecondPosition);
             GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
-            foreach (Entry E in report.get_mission(_selectedMissionIndex).get_entries())
+            foreach (Entry E in report.get_mission_by_index(_selectedMissionIndex).get_entries())
             {
                 GUILayout.BeginHorizontal();
                 // Name

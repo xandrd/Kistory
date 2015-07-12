@@ -18,6 +18,8 @@ namespace Kistory
 
         private double missionTime;
 
+        #region Mission create
+
         // To create mission we need to udentity the ID
         // This needs to load missions
         public Mission(Guid id, String name, double time)
@@ -47,6 +49,7 @@ namespace Kistory
         }
 
         // We can try to create the mission if the vessel if we have an Active Vessel
+        /* == Early version of the constructor. We not use this anymore == 
         public Mission()
         {
             
@@ -61,6 +64,8 @@ namespace Kistory
             }
             else this.missionApproved = false;
         }
+         * 
+         */
  
         // Create mission from the Vessel
         public Boolean is_vessel_fits_to_mission(Vessel ves)
@@ -71,7 +76,7 @@ namespace Kistory
             //return type == VesselType.Ship | type == VesselType.Probe;
             if (type != VesselType.SpaceObject & type != VesselType.EVA & type != VesselType.Flag & type != VesselType.Debris)
             {
-            // Debug information
+            // === Debug information ===
             Debug.Log("[Kistory] Vessel debug information: ");
             Debug.Log("[Kistory] ves.name: " + ves.name);
             Debug.Log("[Kistory] ves.vesselName: " + ves.vesselName);
@@ -118,6 +123,9 @@ namespace Kistory
             return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe); 
         }
 
+        #endregion
+
+        # region Add Entry
         // general function to add message
         public void add_entry(String message)
         {
@@ -150,17 +158,24 @@ namespace Kistory
             this.entries.Add(e);
         }
 
-        // Most usefull case
+        // Add Entry that we created. Can be used in any cases
         public void add_entry(Entry e)
         {
             this.entries.Add(e);
         }
 
+        #endregion
+
+        #region Get Entry
 
         public List<Entry> get_entries()
         {
             return this.entries;
         }
+
+        #endregion
+
+        #region Get Properties
 
         public String get_name()
         {
@@ -179,5 +194,7 @@ namespace Kistory
             return t.ToString("dd-MM-yy HH:mm:ss");
             //return this.missionTime.ToString();
         }
+
+        #endregion
     }
 }

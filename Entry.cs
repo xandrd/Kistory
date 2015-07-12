@@ -17,7 +17,7 @@ namespace Kistory
         private String screenShot;
 
         // Simple creation of the Entry
-        public Entry( String m)
+        public Entry(String m)
         {
             this.message = m;
             this.time = 0;
