@@ -16,3 +16,44 @@ I would like to thanks Alexander Shaduro, whos videos enspired me to start devel
 
 Of course, I'm grateful to Squad for the amazing game that they are developing. And Scott Manley deserve a special mention, whose videos were making up a lot of my days.
 
+# Features
+
+== Log events ==
+- Create a mission (Vessel)
+- Launch
+- Structural damage
+- EVA
+- Board from EVA
+- kerbanaut death in the current vessel
+
+= Display =
+- Toolbar plugin is used
+- Show list of missions
+- Show list of events of selected mission in the separate window
+
+
+# Development
+
+= Planned Events =
+- Get to the orbit
+- Escape from the orbit
+- Get to the landing trajectory
+- Change SOI ( Reach another planet/moon)
+- Landing
+- Splashing
+- Contract complete
+
+= Planned features =
+- Screenshot for some of of the events 
+-- Launch
+-- Landing \ Splashing
+--- (Desending)
+-- Get to the orbit
+- Show mission and events in the same window
+- Close window button
+- Add event
+- Add screenshot
+- Delete event
+- Confirmation to delete
+- Delete mission (?)
+- Options
