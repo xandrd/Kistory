@@ -175,7 +175,7 @@ namespace Kistory
         public String get_time_str()
         {
             DateTime t = new DateTime();
-            t.AddSeconds(this.missionTime);
+            t = t.AddSeconds(this.missionTime);
             return t.ToString("dd-MM-yy HH:mm:ss");
             //return this.missionTime.ToString();
         }

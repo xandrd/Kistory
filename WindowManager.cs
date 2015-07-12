@@ -90,7 +90,7 @@ namespace Kistory
             {
                 GUILayout.BeginHorizontal();
                 // Name
-                GUILayout.Label("Mission: [" + M.get_time_str() + "] " + M.get_name() + " " + M.missionId.ToString());
+                GUILayout.Label("[" + M.get_time_str() + "] " + " Mission: " + M.get_name()); // + " " + M.missionId.ToString());
                 //GUILayout.TextArea("Text Area for Entry");
 
                 GUILayout.FlexibleSpace();

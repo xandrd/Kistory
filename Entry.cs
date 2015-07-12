@@ -35,9 +35,8 @@ namespace Kistory
 
         public String get_time_str()
         {
-            DateTime t;
-            t = new DateTime();
-            t.AddSeconds(this.time);
+            DateTime t = new DateTime();
+            t = t.AddSeconds(this.time);
 
             return t.ToString("dd-MM-yy HH:mm:ss");
             //return this.time.ToString();
