@@ -10,7 +10,10 @@ namespace Kistory
     // Singlton that manage the report in the game
     // Containg the missions
     class ReportManager
-    {        
+    {
+
+        public Kistory Kistory;
+
         private List<Mission> missions = new List<Mission>();
 
         public enum Situations
@@ -413,12 +416,12 @@ namespace Kistory
             if(this._situationRunning)
             {
                 Debug.Log("[Kistory] stop running corutine");
-                StopCoroutine("add_delyed_message");
+                Kistory.StopCoroutine("add_delyed_message");
             }
 
             Debug.Log("[Kistory] Start corutine");
             this._situationRunning = true;
-            StartCoroutine("add_delyed_message", this.objCorutine);
+            Kistory.StartCoroutine("add_delyed_message", this.objCorutine);
         }
 
         #endregion

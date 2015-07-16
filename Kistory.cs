@@ -60,6 +60,8 @@ namespace Kistory
             //ReportManager report = gameObject.AddComponent<ReportManager>();
 
             report = ReportManager.Instance(); // Call the instance
+            report.Kistory = this;
+
             _windows = new WindowManager();
             
             this.eventTime = DateTime.Now; // ?
