@@ -57,6 +57,8 @@ namespace Kistory
         public void Awake()            
         {
             // it might help
+            //ReportManager report = gameObject.AddComponent<ReportManager>();
+
             report = ReportManager.Instance(); // Call the instance
             _windows = new WindowManager();
             

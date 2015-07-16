@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,9 +29,16 @@ namespace Kistory
             public static String KILLED = "Kerbal killed";
             public static String BOARD = "Kerbal board";
             public static String CRASH = "Chash!";
-            public static String DESTROYED = "Structural falure. Part destroyed";
+            public static String DESTROYED = "Part destroyed";
             public static String EXPLODE = "Part exploded";
+            public static String SITUATION = "Situation changed";
+            public static String ORBIT = "Orbit closed";
+            public static String ESCAPE = "On escape trajectory";
+            public static String SOI = "Main body changed";
         }
+
+        private bool _situationRunning = false;
+        public EntryCorutine objCorutine = new EntryCorutine();
 
         // Singlton
         private static volatile ReportManager instance;        
@@ -38,7 +46,8 @@ namespace Kistory
         {
             if (instance == null)
             {
-                instance = new ReportManager();         
+                instance = new ReportManager();
+                //instance = new GameObject("ReportManager").AddComponent<ReportManager>();
             }
             return instance;
         }
@@ -64,7 +73,14 @@ namespace Kistory
             
             GameEvents.onPartDie.Add(this.on_destroyed); // Scructural damage, part destroyed.
             GameEvents.onPartExplode.Add(this.on_explode); // When exposion happens we may take the awesomness. We not going to use this feature now.
-            
+
+            GameEvents.onVesselSituationChange.Add(this.on_situation);
+
+            GameEvents.onVesselOrbitClosed.Add(this.on_orbit);
+
+            GameEvents.onVesselOrbitEscaped.Add(this.on_escape);
+
+            GameEvents.onVesselSOIChanged.Add(this.on_soi);
         }
 
         #endregion
@@ -233,6 +249,37 @@ namespace Kistory
             this.add_message(MissionStrings.CRASH);
         }
 
+        private void on_situation( GameEvents.HostedFromToAction< Vessel, Vessel.Situations > data)
+        {
+            if(data.host != null)
+                if (data.host.isActiveVessel)
+                {
+                    Debug.Log("[Kistory] on_situation: " +  data.host.vesselName +" " + data.from.ToString() + " -> " + data.to.ToString());
+                    if (data.to != Vessel.Situations.PRELAUNCH) // bug or feature?
+                        manage_corutine(data.host, MissionStrings.SITUATION + ": from " + data.from.ToString() + " to:" + data.to.ToString());
+                    
+                }
+        }
+
+        private void on_orbit(Vessel ves)
+        {
+            Debug.Log("[Kistory] on_orbit");
+            add_message(ves, MissionStrings.ORBIT);
+        }
+
+        private void on_escape(Vessel ves)
+        {
+            Debug.Log("[Kistory] on_escape");
+            add_message(ves, MissionStrings.ESCAPE);
+
+        }
+
+        private void on_soi(GameEvents.HostedFromToAction< Vessel, CelestialBody > data)
+        {
+            Debug.Log("[Kistory] on_soi");
+            add_message(data.host, MissionStrings.SOI + " from: " + data.from.bodyName + " to: " + data.to.bodyName);
+        }
+
         #endregion
 
         #region Get Mission
@@ -341,6 +388,37 @@ namespace Kistory
             Mission M = this.find_the_mission(ves);
             if (M != null)
                 M.add_entry(ves, message);
+        }
+
+        // Corutine
+        private IEnumerator add_delyed_message(EntryCorutine data)
+        {
+            Debug.Log("[Kistory] pre add_delyed_message");
+
+            float waitTime = 3;
+            //this._situationRunning = true;
+            yield return new WaitForSeconds(waitTime);
+            Debug.Log("[Kistory] post add_delyed_message");
+            this.add_message(data.ves,  data.message);
+        }
+
+        private void manage_corutine(Vessel ves, String message)
+        {
+            Debug.Log("[Kistory] manage_corutine");
+
+            
+            this.objCorutine.ves = ves;
+            this.objCorutine.message = message;
+
+            if(this._situationRunning)
+            {
+                Debug.Log("[Kistory] stop running corutine");
+                StopCoroutine("add_delyed_message");
+            }
+
+            Debug.Log("[Kistory] Start corutine");
+            this._situationRunning = true;
+            StartCoroutine("add_delyed_message", this.objCorutine);
         }
 
         #endregion
