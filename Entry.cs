@@ -24,6 +24,8 @@ namespace Kistory
             this.time = 0;
             this.screenShot = null;
             Debug.Log("[Kistory] Entry: " + m);
+
+            ScreenMessages.PostScreenMessage(this.get_entry_string(),.3f,ScreenMessageStyle.UPPER_RIGHT);
         }
 
         public Entry(String m, double t)
@@ -32,6 +34,8 @@ namespace Kistory
             this.time = t;
             this.screenShot = null;
             Debug.Log("[Kistory] Entry: " + t + " | " + m);
+
+            ScreenMessages.PostScreenMessage(this.get_entry_string(), .3f, ScreenMessageStyle.UPPER_RIGHT);
         }
 
         #endregion
