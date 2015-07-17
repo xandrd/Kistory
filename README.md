@@ -4,7 +4,7 @@ version: 0.1a
 
 This mod is design to track the events that happen in the game. This is History of your Kerbal Space Program adventure.
 
-At this momoent this mod doen not do much. But I hope it will!
+At this moment this mod does not do much. But I hope it will!
 
 ## Contact
 Alexander Drozdov
@@ -24,9 +24,9 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Structural damage
 - EVA
 - Board from EVA
-- kerbanaut death in the current vessel
+- Kerbanaut death in the current vessel
 
-### Display
+### Visualization
 - Toolbar plugin is used
 - Show list of missions
 - Show list of events of selected mission in the separate window
@@ -57,3 +57,6 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Confirmation to delete
 - Delete mission (?)
 - Options
+
+## Known bugs
+- Mission does not create from the Space Center (if we loaded the saved craft)

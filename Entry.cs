@@ -53,7 +53,7 @@ namespace Kistory
 
         public void print_message()
         {
-            ScreenMessages.PostScreenMessage(this.get_entry_string(), 1f, ScreenMessageStyle.UPPER_RIGHT);
+            ScreenMessages.PostScreenMessage(this.get_short_string(), 1f, ScreenMessageStyle.UPPER_RIGHT);
         }
 
         #endregion
