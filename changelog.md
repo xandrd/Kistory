@@ -1,9 +1,7 @@
 ## v0.2a
 
 ### Events
-- Change situation
-The stability of the situation is checking during 2 seconds
-
+- Change situation (The stability of the situation is checking during 2 seconds)
 - Change SOI
 - Contract complete
 
