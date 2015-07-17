@@ -12,7 +12,7 @@ namespace Kistory
     class ReportManager
     {
 
-        public Kistory Kistory;
+        public Kistory Kistory; 
 
         private List<Mission> missions = new List<Mission>();
 
@@ -35,9 +35,11 @@ namespace Kistory
             public static String DESTROYED = "Part destroyed";
             public static String EXPLODE = "Part exploded";
             public static String SITUATION = "Situation changed";
-            public static String ORBIT = "Orbit closed";
-            public static String ESCAPE = "On escape trajectory";
+                public static String ORBIT = "Orbit closed";
+                public static String ESCAPE = "On escape trajectory";
             public static String SOI = "Main body changed";
+            public static String CONTRACT = "Contract finished";
+            public static String STAGE = "Stage activated";
         }
 
         private bool _situationRunning = false;
@@ -79,11 +81,12 @@ namespace Kistory
 
             GameEvents.onVesselSituationChange.Add(this.on_situation);
 
-            GameEvents.onVesselOrbitClosed.Add(this.on_orbit);
-
-            GameEvents.onVesselOrbitEscaped.Add(this.on_escape);
-
             GameEvents.onVesselSOIChanged.Add(this.on_soi);
+
+            GameEvents.Contract.onFinished.Add(this.on_contract);
+
+            GameEvents.onStageActivate.Add(this.on_stage);
+            //EventData<Contracts.Contract> GameEvents.Contract.onFinished
         }
 
         #endregion
@@ -132,7 +135,7 @@ namespace Kistory
                                 {
                                     if (nodeEntie.HasValue("message"))
                                     {
-                                        M.add_entry(nodeEntie.GetValue("message"), Convert.ToDouble(nodeEntie.GetValue("time")));
+                                        M.load_entry(nodeEntie.GetValue("message"), Convert.ToDouble(nodeEntie.GetValue("time")));
                                     }
                                 }
                             }
@@ -181,9 +184,8 @@ namespace Kistory
                 if (M.missionApproved) // Mission was created
                 {
                     Debug.Log("[Kistory] on_create approved");
-                    Entry E = new Entry(MissionStrings.CREATE);
-                    E.set_time((double) 0);
-
+                    Entry E = new Entry();
+                    E.add(MissionStrings.CREATE, (double) 0);
                     M.add_entry( E );
                     this.add_mission(M);
                 }
@@ -230,9 +232,6 @@ namespace Kistory
             
            // foreach (PartModule module in part.Modules)
            //     Debug.Log("[Kistory] on_destroyed: [" + module.moduleName + "] " + module.GetInfo() + " | " + module.guiText + " | " + module.name); //[0].GetInfo()
-
-
-
             this.add_message(MissionStrings.DESTROYED + " :" + part.partInfo.title);
         }
 
@@ -264,24 +263,23 @@ namespace Kistory
                 }
         }
 
-        private void on_orbit(Vessel ves)
-        {
-            Debug.Log("[Kistory] on_orbit");
-            add_message(ves, MissionStrings.ORBIT);
-        }
-
-        private void on_escape(Vessel ves)
-        {
-            Debug.Log("[Kistory] on_escape");
-            add_message(ves, MissionStrings.ESCAPE);
-
-        }
-
         private void on_soi(GameEvents.HostedFromToAction< Vessel, CelestialBody > data)
         {
             Debug.Log("[Kistory] on_soi");
             add_message(data.host, MissionStrings.SOI + " from: " + data.from.bodyName + " to: " + data.to.bodyName);
         }
+
+        private void on_contract(Contracts.Contract contract)
+        {
+            Debug.Log("[Kistory] on_contract");
+            add_message(MissionStrings.CONTRACT + " : [" + contract.ContractState.ToString() + "] " + contract.Title );
+        }
+
+        private void on_stage(int stage)
+        {
+            Debug.Log("[Kistory] on_stage");
+            add_message(MissionStrings.STAGE + " #" + stage.ToString());
+        } 
 
         #endregion
 
@@ -451,6 +449,14 @@ namespace Kistory
 
             GameEvents.onPartDie.Remove(this.on_destroyed); 
             GameEvents.onPartExplode.Remove(this.on_explode);
+
+            GameEvents.onVesselSituationChange.Remove(this.on_situation);
+
+            GameEvents.onVesselSOIChanged.Remove(this.on_soi);
+
+            GameEvents.Contract.onFinished.Remove(this.on_contract);
+
+            GameEvents.onStageActivate.Remove(this.on_stage);
 
         }
 

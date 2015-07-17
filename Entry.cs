@@ -18,23 +18,41 @@ namespace Kistory
 
         #region create Entry
         // Simple creation of the Entry
-        public Entry(String m)
+        public Entry()
+        {
+            this.message = "";
+            this.time = 0;
+            this.screenShot = null;
+            Debug.Log("[Kistory] Entry created");
+        }
+
+        public void add(String m)
         {
             this.message = m;
             this.time = 0;
-            this.screenShot = null;
-            Debug.Log("[Kistory] Entry: " + m);
-
-            ScreenMessages.PostScreenMessage(this.get_entry_string(),1f,ScreenMessageStyle.UPPER_RIGHT);
+            this.print_message();
+            Debug.Log("[Kistory] add to entry: " + m);
         }
 
-        public Entry(String m, double t)
+        public void add(String m, double t)
         {
             this.message = m;
             this.time = t;
-            this.screenShot = null;
-            Debug.Log("[Kistory] Entry: " + t + " | " + m);
+            this.print_message();
+            Debug.Log("[Kistory] add to entry: " + t + " | " + m);
+                        
+        }
 
+        public void load(String m, double t)
+        {
+            this.message = m;
+            this.time = t;
+
+            Debug.Log("[Kistory] load to entry: " + t + " | " + m);
+        }
+
+        public void print_message()
+        {
             ScreenMessages.PostScreenMessage(this.get_entry_string(), 1f, ScreenMessageStyle.UPPER_RIGHT);
         }
 
@@ -63,13 +81,25 @@ namespace Kistory
             t = t.AddSeconds(this.time);
 
             return t.ToString("dd-MM-yy HH:mm:ss");
-            //return this.time.ToString();
+        }
+
+        public String get_short_time_str()
+        {
+            DateTime t = new DateTime();
+            t = t.AddSeconds(this.time);
+
+            return t.ToString("HH:mm:ss");
         }
 
         // This function format the entry string
         public String get_entry_string()
         {
             return "[" + this.get_time_str() + "] " + this.message;
+        }
+
+        public String get_short_string()
+        {
+            return "[" + this.get_short_time_str() + "] " + this.message;
         }
 
         #endregion

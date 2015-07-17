@@ -111,7 +111,8 @@ namespace Kistory
         public void add_entry(String message)
         {
             Debug.Log("[Kistory] Add message from the Mission class: " + message);
-            Entry e = new Entry(message);
+            Entry e = new Entry();
+            e.add(message);
             if (FlightGlobals.ActiveVessel != null)
             {
                 e.set_time(FlightGlobals.ActiveVessel.missionTime);
@@ -123,7 +124,8 @@ namespace Kistory
         public void add_entry(Vessel ves, String message)
         {
             Debug.Log("[Kistory] Add message from the Mission class: " + message);
-            Entry e = new Entry(message);
+            Entry e = new Entry();
+            e.add(message);
             if (ves != null)
             {
                 e.set_time(ves.missionTime);
@@ -132,10 +134,11 @@ namespace Kistory
         }
 
         // Function for loader
-        public void add_entry(String message, double time)
+        public void load_entry(String message, double time)
         {
             Debug.Log("[Kistory] Add message from the Mission class: " + message);
-            Entry e = new Entry(message, time);
+            Entry e = new Entry();
+            e.load(message, time);
             this.entries.Add(e);
         }
 
