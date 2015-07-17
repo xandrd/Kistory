@@ -24,7 +24,10 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Structural damage
 - EVA
 - Board from EVA
-- kerbanaut death in the current vessel
+- Kerbanaut death in the current vessel
+- Change SOI
+- Record change of situation
+- Stages
 
 ### Display
 - Toolbar plugin is used
@@ -38,10 +41,10 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Get to the orbit
 - Escape from the orbit
 - Get to the landing trajectory
-- Change SOI ( Reach another planet/moon)
+- ~~Change SOI ( Reach another planet/moon)~~
 - Landing
 - Splashing
-- Contract complete
+- ~~Contract complete~~
 
 ### Planned features
 - Screenshot for some of of the events 
