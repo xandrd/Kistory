@@ -109,6 +109,18 @@ namespace Kistory
             report.clear();
         }
 
+        // Corutine
+        private IEnumerator add_delyed_message(EntryCorutine data)
+        {
+            Debug.Log("[Kistory] pre add_delyed_message");
+
+            float waitTime = 3;
+            //this._situationRunning = true;
+            yield return new WaitForSeconds(waitTime);
+            Debug.Log("[Kistory] post add_delyed_message");
+            report.add_message(data.ves, data.message);
+        }
+
 
     }
 

@@ -373,7 +373,7 @@ namespace Kistory
         #region Add Entry
 
         // Add message to current mission. Add message for current vessel
-        private void add_message(String message){
+        public void add_message(String message){
 
             Debug.Log("[Kistory] add_message: " + message);
 
@@ -383,7 +383,7 @@ namespace Kistory
         }
 
         // Add message to mission related to other vessel
-        private void add_message(Vessel ves, String message)
+        public void add_message(Vessel ves, String message)
         {
 
             Debug.Log("[Kistory] add_message: " + message);
@@ -393,17 +393,7 @@ namespace Kistory
                 M.add_entry(ves, message);
         }
 
-        // Corutine
-        private IEnumerator add_delyed_message(EntryCorutine data)
-        {
-            Debug.Log("[Kistory] pre add_delyed_message");
 
-            float waitTime = 3;
-            //this._situationRunning = true;
-            yield return new WaitForSeconds(waitTime);
-            Debug.Log("[Kistory] post add_delyed_message");
-            this.add_message(data.ves,  data.message);
-        }
 
         private void manage_corutine(Vessel ves, String message)
         {
