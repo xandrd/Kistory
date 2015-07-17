@@ -395,7 +395,6 @@ namespace Kistory
 
 
 
-
         private void manage_corutine(Vessel ves, String message)
         {
             Debug.Log("[Kistory] manage_corutine");
@@ -414,7 +413,7 @@ namespace Kistory
             Debug.Log("[Kistory] Start corutine");
             this._situationRunning = true;
             Kistory.StartCoroutine("add_delyed_message", this.objCorutine);
-       }
+        }
 
         #endregion
 
