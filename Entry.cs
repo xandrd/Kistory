@@ -25,7 +25,7 @@ namespace Kistory
             this.screenShot = null;
             Debug.Log("[Kistory] Entry: " + m);
 
-            ScreenMessages.PostScreenMessage(this.get_entry_string(),.3f,ScreenMessageStyle.UPPER_RIGHT);
+            ScreenMessages.PostScreenMessage(this.get_entry_string(),1f,ScreenMessageStyle.UPPER_RIGHT);
         }
 
         public Entry(String m, double t)
@@ -35,7 +35,7 @@ namespace Kistory
             this.screenShot = null;
             Debug.Log("[Kistory] Entry: " + t + " | " + m);
 
-            ScreenMessages.PostScreenMessage(this.get_entry_string(), .3f, ScreenMessageStyle.UPPER_RIGHT);
+            ScreenMessages.PostScreenMessage(this.get_entry_string(), 1f, ScreenMessageStyle.UPPER_RIGHT);
         }
 
         #endregion
@@ -69,7 +69,7 @@ namespace Kistory
         // This function format the entry string
         public String get_entry_string()
         {
-            return "[" + this.get_time_str() + "]" + this.message;
+            return "[" + this.get_time_str() + "] " + this.message;
         }
 
         #endregion

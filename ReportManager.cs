@@ -10,7 +10,10 @@ namespace Kistory
     // Singlton that manage the report in the game
     // Containg the missions
     class ReportManager
-    {        
+    {
+
+        public Kistory Kistory;
+
         private List<Mission> missions = new List<Mission>();
 
         public enum Situations
@@ -370,7 +373,7 @@ namespace Kistory
         #region Add Entry
 
         // Add message to current mission. Add message for current vessel
-        private void add_message(String message){
+        public void add_message(String message){
 
             Debug.Log("[Kistory] add_message: " + message);
 
@@ -380,7 +383,7 @@ namespace Kistory
         }
 
         // Add message to mission related to other vessel
-        private void add_message(Vessel ves, String message)
+        public void add_message(Vessel ves, String message)
         {
 
             Debug.Log("[Kistory] add_message: " + message);
@@ -390,17 +393,8 @@ namespace Kistory
                 M.add_entry(ves, message);
         }
 
-        // Corutine
-        private IEnumerator add_delyed_message(EntryCorutine data)
-        {
-            Debug.Log("[Kistory] pre add_delyed_message");
 
-            float waitTime = 3;
-            //this._situationRunning = true;
-            yield return new WaitForSeconds(waitTime);
-            Debug.Log("[Kistory] post add_delyed_message");
-            this.add_message(data.ves,  data.message);
-        }
+
 
         private void manage_corutine(Vessel ves, String message)
         {
@@ -413,13 +407,14 @@ namespace Kistory
             if(this._situationRunning)
             {
                 Debug.Log("[Kistory] stop running corutine");
-                StopCoroutine("add_delyed_message");
+
+                Kistory.StopCoroutine("add_delyed_message");
             }
 
             Debug.Log("[Kistory] Start corutine");
             this._situationRunning = true;
-            StartCoroutine("add_delyed_message", this.objCorutine);
-        }
+            Kistory.StartCoroutine("add_delyed_message", this.objCorutine);
+       }
 
         #endregion
 

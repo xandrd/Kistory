@@ -60,6 +60,8 @@ namespace Kistory
             //ReportManager report = gameObject.AddComponent<ReportManager>();
 
             report = ReportManager.Instance(); // Call the instance
+            report.Kistory = this;
+
             _windows = new WindowManager();
             
             this.eventTime = DateTime.Now; // ?
@@ -105,6 +107,18 @@ namespace Kistory
 
             this._windows.Destroy();
             report.clear();
+        }
+
+        // Corutine
+        private IEnumerator add_delyed_message(EntryCorutine data)
+        {
+            Debug.Log("[Kistory] pre add_delyed_message");
+
+            float waitTime = 3;
+            //this._situationRunning = true;
+            yield return new WaitForSeconds(waitTime);
+            Debug.Log("[Kistory] post add_delyed_message");
+            report.add_message(data.ves, data.message);
         }
 
 
