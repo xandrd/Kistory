@@ -81,12 +81,21 @@ namespace Kistory
             _windowSecondRect = GUI.Window(_windowSecondId, _windowSecondRect, WindowsSecondOnGUI, "Entries");
         }
 
-        private void WindowsMainOnGUI(int id) // draw main window
+        // Show all mission
+        private void MissionsContent()
         {
             _scrollMainPosition = GUILayout.BeginScrollView(_scrollMainPosition);
             GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
 
-            foreach (Mission M in report.get_missions())
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();            
+            CloseButton();
+            GUILayout.EndHorizontal();
+
+            List<Mission> reverseMissions = report.get_missions();
+            reverseMissions.Reverse();
+
+            foreach (Mission M in reverseMissions)
             {
                 GUILayout.BeginHorizontal();
                 // Name
@@ -96,19 +105,23 @@ namespace Kistory
                 // Button
                 if (GUILayout.Button("Show"))
                 {
+                    Debug.Log("[Kistory] Show button clicked");
                     if (!_windowSecondIsOpen)
                     {
+                        Debug.Log("[Kistory] close main window onen second");
                         _selectedMissionIndex = report.get_missions().IndexOf(M);
                         _windowSecondIsOpen = true;
-                        RenderingManager.AddToPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
+                        _windowMainIsOpen   = false;
+                        //RenderingManager.AddToPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
                     }
-                    else
+                    else // this code should never run
                     {
-                        if(_selectedMissionIndex == report.get_missions().IndexOf(M))
+                        Debug.Log("[Kistory] we should not be here ever");
+                        if (_selectedMissionIndex == report.get_missions().IndexOf(M))
                         {
                             RenderingManager.RemoveFromPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
                             _windowSecondIsOpen = false;
-                        }                         
+                        }
                         else
                         {
                             _selectedMissionIndex = report.get_missions().IndexOf(M);
@@ -125,10 +138,19 @@ namespace Kistory
             GUI.DragWindow();
         }
 
-        private void WindowsSecondOnGUI(int id) // draw secondary window
+        // Show all entries
+        private void EntriesContent()
         {
             _scrollSecondPosition = GUILayout.BeginScrollView(_scrollSecondPosition);
             GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
+            
+            GUILayout.BeginHorizontal();                        
+            GUILayout.FlexibleSpace();
+            BackButton();
+            CloseButton();
+            GUILayout.EndHorizontal();
+
+
             foreach (Entry E in report.get_mission_by_index(_selectedMissionIndex).get_entries())
             {
                 GUILayout.BeginHorizontal();
@@ -142,6 +164,40 @@ namespace Kistory
             GUILayout.EndScrollView();
 
             GUI.DragWindow();
+        }
+        private void CloseButton()
+        {            
+            if (GUILayout.Button("Close"))
+            {
+                RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);
+                _windowSecondIsOpen = false;
+                _windowMainIsOpen   = false;
+            }         
+        }
+        private void BackButton()
+        {
+            if (GUILayout.Button("Back"))
+            {
+                _windowMainIsOpen = true;
+                _windowSecondIsOpen = false;
+            }
+        }
+
+        private void WindowsMainOnGUI(int id) // draw main window
+        {
+            if (_windowMainIsOpen)
+            {
+                MissionsContent();
+            }            
+            else if(_windowSecondIsOpen)
+            {
+                EntriesContent();
+            }
+        }
+
+        private void WindowsSecondOnGUI(int id) // draw secondary window
+        {
+            EntriesContent();
         }
 
     }
