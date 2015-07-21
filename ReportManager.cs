@@ -185,7 +185,7 @@ namespace Kistory
                 {
                     Debug.Log("[Kistory] on_create approved");
                     Entry E = new Entry();
-                    E.add(MissionStrings.CREATE, (double) 0);
+                    E.add(MissionStrings.CREATE + ": " + M.get_name(), (double)0);
                     M.add_entry( E );
                     this.add_mission(M);
                 }

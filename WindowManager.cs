@@ -29,6 +29,8 @@ namespace Kistory
 
         private int _selectedMissionIndex = 0; // Which mission to show
 
+        private String stringEntryToAdd;
+
         public WindowManager()
         {
             // Close windows by default
@@ -108,13 +110,14 @@ namespace Kistory
                     Debug.Log("[Kistory] Show button clicked");
                     if (!_windowSecondIsOpen)
                     {
-                        Debug.Log("[Kistory] close main window onen second");
+                        Debug.Log("[Kistory] close main window open second");
+                        stringEntryToAdd = ""; // Clear the add string
                         _selectedMissionIndex = report.get_missions().IndexOf(M);
                         _windowSecondIsOpen = true;
-                        _windowMainIsOpen   = false;
-                        //RenderingManager.AddToPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
+                        _windowMainIsOpen   = false;                        
                     }
-                    else // this code should never run
+                    /*
+                     * else // this code should never run
                     {
                         Debug.Log("[Kistory] we should not be here ever");
                         if (_selectedMissionIndex == report.get_missions().IndexOf(M))
@@ -128,6 +131,7 @@ namespace Kistory
                         }
 
                     }
+                     * */
                 }
 
                 GUILayout.EndHorizontal();
@@ -144,8 +148,10 @@ namespace Kistory
             _scrollSecondPosition = GUILayout.BeginScrollView(_scrollSecondPosition);
             GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
             
-            GUILayout.BeginHorizontal();                        
-            GUILayout.FlexibleSpace();
+            GUILayout.BeginHorizontal();
+            //GUILayout.FlexibleSpace();
+            stringEntryToAdd = GUILayout.TextField(stringEntryToAdd, GUILayout.ExpandWidth(true));
+            AddButton();
             BackButton();
             CloseButton();
             GUILayout.EndHorizontal();
@@ -166,8 +172,8 @@ namespace Kistory
             GUI.DragWindow();
         }
         private void CloseButton()
-        {            
-            if (GUILayout.Button("Close"))
+        {
+            if (GUILayout.Button("Close", GUILayout.ExpandWidth(false)))
             {
                 RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);
                 _windowSecondIsOpen = false;
@@ -176,10 +182,19 @@ namespace Kistory
         }
         private void BackButton()
         {
-            if (GUILayout.Button("Back"))
+            if (GUILayout.Button("Back", GUILayout.ExpandWidth(false)))
             {
                 _windowMainIsOpen = true;
                 _windowSecondIsOpen = false;
+            }
+        }
+
+        private void AddButton()
+        {
+            if (GUILayout.Button("Add", GUILayout.ExpandWidth(false)))
+            {
+                Debug.Log("[Kistory] Add entry button: " + stringEntryToAdd);
+                report.get_mission_by_index(_selectedMissionIndex).add_user_entry(stringEntryToAdd);
             }
         }
 

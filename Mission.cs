@@ -148,6 +148,18 @@ namespace Kistory
             this.entries.Add(e);
         }
 
+        // Add entry from GUI
+        public void add_user_entry(String message)
+        {
+            Entry e = new Entry();
+            e.add(message);
+            double mission_time = this.get_time();
+            double current_time = HighLogic.CurrentGame.flightState.universalTime;
+
+            e.set_time( current_time - mission_time ); // For some reason this does not work...
+            this.add_entry(e);
+        }
+
         #endregion
 
         #region Get Entry
