@@ -110,15 +110,16 @@ namespace Kistory
         }
 
         // Corutine
-        private IEnumerator add_delyed_message(EntryCorutine data)
+        private IEnumerator add_delayed_message(EntryCorutine data)
         {
-            Debug.Log("[Kistory] pre add_delyed_message");
+            Debug.Log("[Kistory] pre add_delayed_message");
 
             float waitTime = 3;
             //this._situationRunning = true;
             yield return new WaitForSeconds(waitTime);
-            Debug.Log("[Kistory] post add_delyed_message");
-            report.add_message(data.ves, data.message);
+            Debug.Log("[Kistory] post add_delayed_message");
+            report.add_situation_message(data.ves, data.message, data.situation);
+
         }
 
 

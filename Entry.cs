@@ -23,7 +23,7 @@ namespace Kistory
             this.message = "";
             this.time = 0;
             this.screenShot = null;
-            Debug.Log("[Kistory] Entry created");
+            //Debug.Log("[Kistory] Entry created");
         }
 
         public void add(String m)
@@ -48,7 +48,7 @@ namespace Kistory
             this.message = m;
             this.time = t;
 
-            Debug.Log("[Kistory] load to entry: " + t + " | " + m);
+            //Debug.Log("[Kistory] load to entry: " + t + " | " + m);
         }
 
         public void print_message()

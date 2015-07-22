@@ -18,17 +18,20 @@ namespace Kistory
 
         private double missionTime;
 
+        private Vessel.Situations missionSituation; 
+
         #region Mission create
 
         // To create mission we need to udentity the ID
         // This needs to load missions
-        public Mission(Guid id, String name, double time)
+        public Mission(Guid id, String name, double time, Vessel.Situations situation)
         {
             Debug.Log("[Kistory] Mission is creating by Id: " + id.ToString());
             this.missionId = id;
             this.missionName = name;
             this.missionApproved = true;
             this.missionTime = time;
+            this.missionSituation = situation;
          
         }
 
@@ -43,6 +46,7 @@ namespace Kistory
                 this.missionId = ves.id;
                 this.missionApproved = true;
                 this.missionName = ves.GetName();
+                this.missionSituation = ves.situation;
                 this.missionTime = HighLogic.CurrentGame.flightState.universalTime;
             }
             else this.missionApproved = false;
@@ -101,7 +105,8 @@ namespace Kistory
             // (ves.missionTime < 0.1); Condition for the mission time. It should be checked only if we create a new flight.
 
             // This conditions should be ok
-            return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe); 
+            Debug.Log("[Kistory] Vessel conditions are ok for Aproove");
+            return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded;  // Apparently the last parameter (ves.loaded) needs to be check
         }
 
         #endregion
@@ -136,7 +141,7 @@ namespace Kistory
         // Function for loader
         public void load_entry(String message, double time)
         {
-            Debug.Log("[Kistory] Add message from the Mission class: " + message);
+            //Debug.Log("[Kistory] Add message from the Mission class: " + message); // No more double load spam
             Entry e = new Entry();
             e.load(message, time);
             this.entries.Add(e);
@@ -153,8 +158,13 @@ namespace Kistory
         {
             Entry e = new Entry();
             e.add(message);
+           
+
             double mission_time = this.get_time();
-            double current_time = HighLogic.CurrentGame.flightState.universalTime;
+            double current_time = Planetarium.GetUniversalTime();
+                //HighLogic.CurrentGame.flightState.universalTime;            
+
+            Debug.Log("[Kistory] Add from gui, mission_time:" + mission_time.ToString() + " Planetarium.GetUniversalTime():" + Planetarium.GetUniversalTime().ToString() + " flightState.universalTime:" + HighLogic.CurrentGame.flightState.universalTime.ToString());
 
             e.set_time( current_time - mission_time ); // For some reason this does not work...
             this.add_entry(e);
@@ -194,6 +204,16 @@ namespace Kistory
         public String get_mission_string()
         {
             return "[" + this.get_time_str() + "] " + " Mission: " + this.get_name();
+        }
+
+        public Vessel.Situations get_situation()
+        {
+            return this.missionSituation;
+        }
+
+        public void set_situation(Vessel.Situations situation)
+        {
+            this.missionSituation = situation;
         }
 
         #endregion

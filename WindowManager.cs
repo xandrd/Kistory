@@ -46,19 +46,17 @@ namespace Kistory
             toolButton.OnClick += (e) =>
             {
                 Debug.Log("[Kistory] Kistory_button clicked");
-                if (!_windowMainIsOpen) // if close open main window
+                if (!_windowMainIsOpen && !_windowSecondIsOpen) // if close open main window
                 {
+                    _windowSecondIsOpen = false;
                     _windowMainIsOpen = true;
                     RenderingManager.AddToPostDrawQueue(_windowMainId, WindowMainOnDraw);
                 }
                 else // if open close main and second windows
                 {
-                    RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);
-                    if (_windowSecondIsOpen)
-                        RenderingManager.RemoveFromPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
-
                     _windowMainIsOpen = false;
                     _windowSecondIsOpen = false;
+                    RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);                    
                 }
             };
         }
@@ -94,10 +92,7 @@ namespace Kistory
             CloseButton();
             GUILayout.EndHorizontal();
 
-            List<Mission> reverseMissions = report.get_missions();
-            reverseMissions.Reverse();
-
-            foreach (Mission M in reverseMissions)
+            foreach (Mission M in Enumerable.Reverse(report.get_missions()))
             {
                 GUILayout.BeginHorizontal();
                 // Name

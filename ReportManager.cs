@@ -123,8 +123,9 @@ namespace Kistory
                             String missionId = nodeMission.GetValue("missionId");
                             String missionName = nodeMission.GetValue("missionName");
                             double missionTime = Convert.ToDouble(nodeMission.GetValue("missionTime"));
+                            Vessel.Situations missionSituation = (Vessel.Situations) Enum.Parse(typeof(Vessel.Situations), nodeMission.GetValue("missionSituation")); // I hope that will work
                             // create mission
-                            Mission M = new Mission(new Guid(missionId), missionName, missionTime);
+                            Mission M = new Mission(new Guid(missionId), missionName, missionTime, missionSituation);
 
                             nodeName = "Entry";
                             if (nodeMission.HasNode("Entry"))
@@ -161,6 +162,7 @@ namespace Kistory
                 nodeMission.AddValue("missionId", M.missionId);
                 nodeMission.AddValue("missionName", M.get_name());
                 nodeMission.AddValue("missionTime", M.get_time());
+                nodeMission.AddValue("missionSituation", M.get_situation());
 
                 // Walk thought all messages of the mission
                 foreach (Entry E in M.get_entries())
@@ -182,7 +184,7 @@ namespace Kistory
 
                 Mission M = new Mission(ves); // Possible new mission
                 if (M.missionApproved) // Mission was created
-                {
+                {                    
                     Debug.Log("[Kistory] on_create approved");
                     Entry E = new Entry();
                     E.add(MissionStrings.CREATE + ": " + M.get_name(), (double)0);
@@ -258,7 +260,7 @@ namespace Kistory
                 {
                     Debug.Log("[Kistory] on_situation: " +  data.host.vesselName +" " + data.from.ToString() + " -> " + data.to.ToString());
                     if (data.to != Vessel.Situations.PRELAUNCH) // bug or feature?
-                        manage_corutine(data.host, MissionStrings.SITUATION + ": from " + data.from.ToString() + " to:" + data.to.ToString());
+                        manage_corutine(data.host, MissionStrings.SITUATION + ": from " + data.from.ToString() + " to:" + data.to.ToString(), data.to);
                     
                 }
         }
@@ -289,6 +291,13 @@ namespace Kistory
         public List<Mission> get_missions()
         {
             return this.missions;
+        }
+
+        public List<Mission> get_reverse_missions()
+        {
+            List<Mission> reverse = this.missions;
+            reverse.Reverse();
+            return reverse;
         }
 
         // Get mission from the list by ID. Used to display mission
@@ -391,26 +400,44 @@ namespace Kistory
                 M.add_entry(ves, message);
         }
 
+        // Add message from coroutine. We check the situation and change the situation
+        public void add_situation_message(Vessel ves, String message, Vessel.Situations situation)
+        {
 
+            Debug.Log("[Kistory] add_situation_message: " + message);
 
-        private void manage_corutine(Vessel ves, String message)
+            Mission M = this.find_the_mission(ves);
+            if (M != null & M.get_situation() != situation)
+            {
+                Debug.Log("[Kistory] situation change from : " + M.get_situation().ToString() + " to: " + situation.ToString());
+                M.set_situation(situation);
+                if (ves.Landed)
+                    message = message + " at: " + FlightGlobals.currentMainBody.name + " (" + FlightGlobals.currentMainBody.BiomeMap.GetAtt(ves.latitude * Mathf.Deg2Rad, ves.longitude * Mathf.Deg2Rad).name + ")";
+
+                M.add_entry(ves, message);
+            }
+
+        }
+
+        private void manage_corutine(Vessel ves, String message, Vessel.Situations situation)
         {
             Debug.Log("[Kistory] manage_corutine");
 
             
             this.objCorutine.ves = ves;
             this.objCorutine.message = message;
+            this.objCorutine.situation = situation;
 
             if(this._situationRunning)
             {
                 Debug.Log("[Kistory] stop running corutine");
 
-                Kistory.StopCoroutine("add_delyed_message");
+                Kistory.StopCoroutine("add_delayed_message");
             }
 
             Debug.Log("[Kistory] Start corutine");
             this._situationRunning = true;
-            Kistory.StartCoroutine("add_delyed_message", this.objCorutine);
+            Kistory.StartCoroutine("add_delayed_message", this.objCorutine);
         }
 
         #endregion
