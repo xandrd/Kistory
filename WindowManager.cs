@@ -110,23 +110,7 @@ namespace Kistory
                         _selectedMissionIndex = report.get_missions().IndexOf(M);
                         _windowSecondIsOpen = true;
                         _windowMainIsOpen   = false;                        
-                    }
-                    /*
-                     * else // this code should never run
-                    {
-                        Debug.Log("[Kistory] we should not be here ever");
-                        if (_selectedMissionIndex == report.get_missions().IndexOf(M))
-                        {
-                            RenderingManager.RemoveFromPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
-                            _windowSecondIsOpen = false;
-                        }
-                        else
-                        {
-                            _selectedMissionIndex = report.get_missions().IndexOf(M);
-                        }
-
-                    }
-                     * */
+                    }                    
                 }
 
                 GUILayout.EndHorizontal();
@@ -157,7 +141,18 @@ namespace Kistory
                 GUILayout.BeginHorizontal();
                 // Name
                 GUILayout.Label(E.get_entry_string());
-                //GUILayout.FlexibleSpace();
+                GUILayout.FlexibleSpace();
+                GUILayout.FlexibleSpace();
+                // Button
+                if (GUILayout.Button("X")) // Delete the entry
+                {
+                    Debug.Log("[Kistory] Delete button clicked");
+                    int entryIndex;
+                    entryIndex = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E);
+                    report.get_mission_by_index(_selectedMissionIndex).detele_entry_by_index(entryIndex);
+                    break;
+                    //PopupDialog.SpawnPopupDialog()
+                }
                 GUILayout.EndHorizontal();
             }
 

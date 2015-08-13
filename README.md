@@ -33,6 +33,8 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Toolbar plugin is used
 - Show list of missions
 - Show list of events of selected mission in the separate window
+- Add the Event to the mission
+- Delete the event from the mission
 
 
 ## Development
@@ -52,9 +54,9 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
  - Landing \ Splashing
   - (Desending)
  - Get to the orbit
-- Show mission and events in the same window
-- Close window button
-- Add event
+- ~~Show mission and events in the same window~~
+- ~~Close window button~~
+- ~~Add event~~
 - Add screenshot
 - Delete event
 - Confirmation to delete
@@ -62,4 +64,4 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Options
 
 ## Known bugs
-- Mission does not create from the Space Center (if we loaded the saved craft)
+- ~~Mission does not create from the Space Center (if we loaded the saved craft)~~

@@ -181,6 +181,22 @@ namespace Kistory
 
         #endregion
 
+        #region Delte enrty
+
+        public void detele_entry_by_index(int index)
+        {
+            Debug.Log("[Kistory] Delete item " + index.ToString());
+            // check if the entry exist then delete            
+            if (this.entries[index] != null)
+            {
+                Debug.Log("[Kistory] Entry deleted");
+                this.entries.RemoveAt(index);
+            }
+    }
+            
+
+        #endregion
+
         #region Get Properties
 
         public String get_name()
