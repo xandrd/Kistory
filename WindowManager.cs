@@ -16,18 +16,23 @@ namespace Kistory
 
         private IButton toolButton; // toolbar button object
 
-        private bool _windowMainIsOpen, _windowSecondIsOpen; // flag to check if the window is open
+        private bool _windowMainIsOpen, _windowSecondIsOpen, _windowConfirmIsOpen; // flag to check if the window is open
         
         private readonly int _windowMainId = UnityEngine.Random.Range(8000000, 9000000);   // unique ID for the window
         private readonly int _windowSecondId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
+        private readonly int _windowConfirmId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
 
         private Rect _windowMainRect = new Rect(100, 100, 600, 400);   // position and size
         private Rect _windowSecondRect = new Rect(400, 100, 800, 400); // position and size
+        private Rect _windowConfirmRect = new Rect(Screen.width * 0.5f - 300, Screen.height * 0.5f - 100, 300, 100); // position and size
 
         private Vector2 _scrollMainPosition = new Vector2();   // Scroll inside the window
         private Vector2 _scrollSecondPosition = new Vector2(); // Scroll inside the window
+        private Vector2 _scrollConfirmPosition = new Vector2(); // Scroll inside the window
 
         private int _selectedMissionIndex = 0; // Which mission to show
+        private int _selectedMissionToDeleteEntry = 0; // IF we select Enter to delete, which mission?
+        private int _selectedEntryToDelete = 0; // Selected entry to delete
 
         private String stringEntryToAdd;
 
@@ -36,6 +41,7 @@ namespace Kistory
             // Close windows by default
             _windowMainIsOpen = false;
             _windowSecondIsOpen = false;
+            _windowConfirmIsOpen = false;
 
             // regular button from Toolbar
             toolButton = ToolbarManager.Instance.add("Kistory", "Kistory_button");
@@ -50,13 +56,20 @@ namespace Kistory
                 {
                     _windowSecondIsOpen = false;
                     _windowMainIsOpen = true;
+                    _windowConfirmIsOpen = false;
                     RenderingManager.AddToPostDrawQueue(_windowMainId, WindowMainOnDraw);
                 }
                 else // if open close main and second windows
                 {
+                    if(_windowMainIsOpen)
+                        RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);
+                    if (_windowConfirmIsOpen)
+                        RenderingManager.RemoveFromPostDrawQueue(_windowConfirmId, WindowConfirmOnDraw);
+
                     _windowMainIsOpen = false;
                     _windowSecondIsOpen = false;
-                    RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);                    
+                    _windowConfirmIsOpen = false;
+                                  
                 }
             };
         }
@@ -68,17 +81,22 @@ namespace Kistory
             if (_windowMainIsOpen)
                 RenderingManager.RemoveFromPostDrawQueue(_windowMainId, WindowMainOnDraw);
 
-            if (_windowSecondIsOpen)
-                RenderingManager.RemoveFromPostDrawQueue(_windowSecondId, WindowSecondOnDraw);
+            if (_windowConfirmIsOpen)
+                RenderingManager.RemoveFromPostDrawQueue(_windowConfirmId, WindowConfirmOnDraw);
+                  
         }
 
         private void WindowMainOnDraw() // create the window
         {
             _windowMainRect = GUI.Window(_windowMainId, _windowMainRect, WindowsMainOnGUI, "Missions");
         }
-        private void WindowSecondOnDraw() // create the window
+        //private void WindowSecondOnDraw() // create the window
+        //{
+        //    _windowSecondRect = GUI.Window(_windowSecondId, _windowSecondRect, WindowsSecondOnGUI, "Entries");
+        //}
+        private void WindowConfirmOnDraw()
         {
-            _windowSecondRect = GUI.Window(_windowSecondId, _windowSecondRect, WindowsSecondOnGUI, "Entries");
+            _windowConfirmRect = GUI.Window(_windowConfirmId, _windowConfirmRect, WindowsConfirmOnGUI, "Confirm");
         }
 
         // Show all mission
@@ -147,10 +165,11 @@ namespace Kistory
                 if (GUILayout.Button("X")) // Delete the entry
                 {
                     Debug.Log("[Kistory] Delete button clicked");
-                    int entryIndex;
-                    entryIndex = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E);
-                    report.get_mission_by_index(_selectedMissionIndex).detele_entry_by_index(entryIndex);
-                    break;
+                    _selectedMissionToDeleteEntry = _selectedMissionIndex; // IF we select Enter to delete, which mission?
+                    _selectedEntryToDelete = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E); // Selected entry to delete                    
+                    _windowConfirmIsOpen = true;
+                    RenderingManager.AddToPostDrawQueue(_windowConfirmId, WindowConfirmOnDraw);
+                    //break;
                     //PopupDialog.SpawnPopupDialog()
                 }
                 GUILayout.EndHorizontal();
@@ -161,6 +180,43 @@ namespace Kistory
 
             GUI.DragWindow();
         }
+
+        private void ConfirmDeleteMessage()
+        {
+
+            GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.Label("Delete?"); // + " " + M.missionId.ToString());
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Delete"))
+            {
+                Debug.Log("[Kistory] Confirm delete button clicked");
+                if(_selectedMissionToDeleteEntry != 0 & _selectedEntryToDelete != 0)
+                    report.get_mission_by_index(_selectedMissionToDeleteEntry).detele_entry_by_index(_selectedEntryToDelete);
+
+                if (_windowConfirmIsOpen) // this check is not neccecary... 
+                    RenderingManager.RemoveFromPostDrawQueue(_windowConfirmId, WindowConfirmOnDraw);
+                _windowConfirmIsOpen = false;
+            }
+
+            if (GUILayout.Button("Cancel"))
+            {
+                Debug.Log("[Kistory] Confirm cancel button clicked");
+                if (_windowConfirmIsOpen) // this check is not neccecary... 
+                    RenderingManager.RemoveFromPostDrawQueue(_windowConfirmId, WindowConfirmOnDraw);
+                    _windowConfirmIsOpen = false;
+            }
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUI.DragWindow();
+        }
+
         private void CloseButton()
         {
             if (GUILayout.Button("Close", GUILayout.ExpandWidth(false)))
@@ -178,7 +234,6 @@ namespace Kistory
                 _windowSecondIsOpen = false;
             }
         }
-
         private void AddButton()
         {
             if (GUILayout.Button("Add", GUILayout.ExpandWidth(false)))
@@ -200,9 +255,14 @@ namespace Kistory
             }
         }
 
-        private void WindowsSecondOnGUI(int id) // draw secondary window
+        //private void WindowsSecondOnGUI(int id) // draw secondary window
+        //{
+        //    EntriesContent();
+        //}
+
+        private void WindowsConfirmOnGUI(int id)
         {
-            EntriesContent();
+            ConfirmDeleteMessage();
         }
 
     }
