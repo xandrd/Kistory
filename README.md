@@ -1,6 +1,6 @@
 # Kistory
 Kerbal Space Program mod Kistory
-version: 0.1a
+version: 0.2a
 
 This mod is design to track the events that happen in the game. This is History of your Kerbal Space Program adventure.
 
@@ -30,7 +30,8 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Stages
 
 ### Visualization
-- Toolbar plugin is used
+- ~~Toolbar plugin is used~~
+- KSP button is used
 - Show list of missions
 - Show list of events of selected mission in the separate window
 - Add the Event to the mission
@@ -65,3 +66,7 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 
 ## Known bugs
 - ~~Mission does not create from the Space Center (if we loaded the saved craft)~~
+
+## ChangeLog ##
+- 0.2a KSP 1.1 Supported. Button changed from Toolbar to KSP.
+- 0.1a Prototype released

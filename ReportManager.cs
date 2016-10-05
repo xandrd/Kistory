@@ -5,8 +5,11 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+
 namespace Kistory
 {
+    using KSP.UI.Screens;
+
     // Singlton that manage the report in the game
     // Containg the missions
     class ReportManager
@@ -45,6 +48,8 @@ namespace Kistory
         private bool _situationRunning = false;
         public EntryCorutine objCorutine = new EntryCorutine();
 
+        private static ApplicationLauncherButton button;
+
         // Singlton
         private static volatile ReportManager instance;        
         public static ReportManager Instance()
@@ -62,6 +67,12 @@ namespace Kistory
         private ReportManager()
         {
             Debug.Log("[Kistory] New ReportManager Created");
+            // == Add and remove button == //
+            Debug.Log("[Kistory] Add and remove button");
+            GameEvents.onGUIApplicationLauncherReady.Add(this.add_button); // add
+            GameEvents.onGUIApplicationLauncherUnreadifying.Add(this.remove_button); // remove
+
+            Debug.Log("[Kistory] Events No Active Vessel");
             // === Event No Active Vessel (?) === //
             GameEvents.onGameStateLoad.Add(this.on_game_load); // Load Kistory from the save file
             GameEvents.onGameStateSave.Add(this.on_game_save); // Save Kistory to the save file
@@ -72,6 +83,7 @@ namespace Kistory
             GameEvents.onCrewKilled.Add(this.on_killed);     // Kerbal died. Mission will not be found if Kerbal died outside the Vessel
 
             // === Events with Active Vessel === //
+            Debug.Log("[Kistory] Events with Active Vessel");
             GameEvents.onLaunch.Add(this.on_launch); // Squad calls this Liftof! 
 
             GameEvents.onCrewOnEva.Add(this.on_EVA); // EVA
@@ -283,6 +295,27 @@ namespace Kistory
             add_message(MissionStrings.STAGE + " #" + stage.ToString());
         } 
 
+
+        private void add_button()
+        {
+            Debug.Log("[Kistory] Creating the button");
+            if (ApplicationLauncher.Instance != null && button == null)
+            {
+                                
+                Debug.Log("[Kistory] Add button");
+                ApplicationLauncher.AppScenes VisibleInScenes = ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.MAPVIEW; //, VAB, SPH, ALWAYS
+                button = ApplicationLauncher.Instance.AddModApplication(this.button_OnToggleTrue, this.button_OnToggleFalse, null, null, null, null, VisibleInScenes, GameDatabase.Instance.GetTexture("Kistory/Kistory", false));
+            }
+        }
+
+        private void remove_button(GameScenes scene)
+        {
+            if (ApplicationLauncher.Instance != null && button != null)
+            {
+                ApplicationLauncher.Instance.RemoveModApplication(button);
+            }
+        }
+
         #endregion
 
         #region Get Mission
@@ -419,6 +452,7 @@ namespace Kistory
 
         }
 
+        // Function start and stom the corutine. We need to create a delay for our methods.
         private void manage_corutine(Vessel ves, String message, Vessel.Situations situation)
         {
             Debug.Log("[Kistory] manage_corutine");
@@ -442,6 +476,25 @@ namespace Kistory
 
         #endregion
 
+        #region Button events
+        private void button_OnToggleTrue()
+        {
+            // Code here
+            //PilotAssistantFlightCore.bDisplayAssistant = true;
+            Debug.Log("[Kistory] New button Toggle on ");
+
+            Kistory.ShowWindow();
+        }
+
+        private void button_OnToggleFalse()
+        {
+            // Code here
+            //PilotAssistantFlightCore.bDisplayAssistant = false;
+            Debug.Log("[Kistory] New button Toggle off ");
+            Kistory.CloseWindow();
+        }
+        #endregion
+
         // (C) FinalFrontier mod
         private String get_root_path()
         {
@@ -463,6 +516,9 @@ namespace Kistory
         // Calld in the descructor of the Kistory plugin
         public void clear()
         {
+            GameEvents.onGUIApplicationLauncherReady.Remove(this.add_button); // add
+            GameEvents.onGUIApplicationLauncherUnreadifying.Remove(this.remove_button); // remove
+
             GameEvents.onGameStateLoad.Remove(this.on_game_load);
             GameEvents.onGameStateSave.Remove(this.on_game_save);
 

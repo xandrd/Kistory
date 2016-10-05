@@ -96,8 +96,8 @@ namespace Kistory
 
         // Calls on each draw step, more often than Update()
         void OnGUI()
-        {
-
+        {            
+            _windows.OnDraw();
         }
 
         // .. dispose
@@ -105,11 +105,27 @@ namespace Kistory
         {
             Debug.Log("[Kistory] OnDestroy");
 
-            this._windows.Destroy();
-            report.clear();
+            //if(this._windows != null)
+            //   this._windows.Destroy();
+
+            Debug.Log("[Kistory] OnDestroy events");
+            if (report != null)
+                report.clear();
         }
 
-        // Corutine
+        public void ShowWindow() 
+        {
+            Debug.Log("[Kistory] ShowWindow");
+            _windows.Show();
+        }
+
+        public void CloseWindow() 
+        {
+            Debug.Log("[Kistory] CloseWindow");
+            _windows.Close();
+        }
+
+        // Corutine add message
         private IEnumerator add_delayed_message(EntryCorutine data)
         {
             Debug.Log("[Kistory] pre add_delayed_message");
@@ -119,8 +135,28 @@ namespace Kistory
             yield return new WaitForSeconds(waitTime);
             Debug.Log("[Kistory] post add_delayed_message");
             report.add_situation_message(data.ves, data.message, data.situation);
-
         }
+
+        // Corutine add message and photo
+        // This function is not finished yet!!!! 
+        private IEnumerator add_delayed_message_and_photo(EntryCorutine data)
+        {
+            Debug.Log("[Kistory] pre add_delayed_message_and_photo");
+
+            String fileName;
+            float waitTime = 3;
+            //this._situationRunning = true;
+            yield return new WaitForSeconds(waitTime);
+            Debug.Log("[Kistory] post add_delayed_message_and_photo");
+            report.add_situation_message(data.ves, data.message, data.situation);
+
+            // We are serching for right filepath!
+            // The name of the screenshot  should be constructed!
+            fileName = Application.dataPath + HighLogic.SaveFolder + "/screen.png";
+            Debug.Log("[Kistory] filename");
+            Application.CaptureScreenshot(fileName);
+        }
+
 
 
     }
