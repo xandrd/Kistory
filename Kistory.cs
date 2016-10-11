@@ -41,7 +41,7 @@ namespace Kistory
 
             fileName = this.str_eventTime() + letter + ".png";
 
-            Debug.Log("[Kistory]" + type + ": " + fileName);
+            KDebug.Log("" + type + ": " + fileName);
             
             StartCoroutine( delay_screenshot(2, fileName) ); 
             
@@ -60,13 +60,13 @@ namespace Kistory
             //ReportManager report = gameObject.AddComponent<ReportManager>();
 
             report = ReportManager.Instance(); // Call the instance
-            report.Kistory = this;
+            report.Kistory = this; // We need this for corutines
 
-            _windows = new WindowManager();
+            _windows = new WindowManager(); // we need this to draw interface
             
             this.eventTime = DateTime.Now; // ?
 
-            Debug.Log("[Kistory] Awake");
+            KDebug.Log("Awake");
         }
 
         // Load before the first frame
@@ -103,57 +103,57 @@ namespace Kistory
         // .. dispose
         void OnDestroy()
         {
-            Debug.Log("[Kistory] OnDestroy");
+            KDebug.Log("OnDestroy");
 
             //if(this._windows != null)
             //   this._windows.Destroy();
 
-            Debug.Log("[Kistory] OnDestroy events");
+            KDebug.Log("OnDestroy events");
             if (report != null)
                 report.clear();
         }
 
         public void ShowWindow() 
         {
-            Debug.Log("[Kistory] ShowWindow");
+            KDebug.Log("ShowWindow");
             _windows.Show();
         }
 
         public void CloseWindow() 
         {
-            Debug.Log("[Kistory] CloseWindow");
+            KDebug.Log("CloseWindow");
             _windows.Close();
         }
 
         // Corutine add message
         private IEnumerator add_delayed_message(EntryCorutine data)
         {
-            Debug.Log("[Kistory] pre add_delayed_message");
+            KDebug.Log("pre add_delayed_message");
 
             float waitTime = 3;
             //this._situationRunning = true;
             yield return new WaitForSeconds(waitTime);
-            Debug.Log("[Kistory] post add_delayed_message");
-            report.add_situation_message(data.ves, data.message, data.situation);
+            KDebug.Log("post add_delayed_message");
+            report.add_situation_message(data.situation, data.ves, data.message, data.vessel_situation);
         }
 
         // Corutine add message and photo
         // This function is not finished yet!!!! 
         private IEnumerator add_delayed_message_and_photo(EntryCorutine data)
         {
-            Debug.Log("[Kistory] pre add_delayed_message_and_photo");
+            KDebug.Log("pre add_delayed_message_and_photo");
 
             String fileName;
             float waitTime = 3;
             //this._situationRunning = true;
             yield return new WaitForSeconds(waitTime);
-            Debug.Log("[Kistory] post add_delayed_message_and_photo");
-            report.add_situation_message(data.ves, data.message, data.situation);
+            KDebug.Log("post add_delayed_message_and_photo");
+            report.add_situation_message(data.situation, data.ves, data.message, data.vessel_situation);
 
             // We are serching for right filepath!
             // The name of the screenshot  should be constructed!
             fileName = Application.dataPath + HighLogic.SaveFolder + "/screen.png";
-            Debug.Log("[Kistory] filename");
+            KDebug.Log("filename");
             Application.CaptureScreenshot(fileName);
         }
 

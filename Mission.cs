@@ -26,7 +26,7 @@ namespace Kistory
         // This needs to load missions
         public Mission(Guid id, String name, double time, Vessel.Situations situation)
         {
-            Debug.Log("[Kistory] Mission is creating by Id: " + id.ToString());
+            KDebug.Log("Mission is creating by Id: " + id.ToString());
             this.missionId = id;
             this.missionName = name;
             this.missionApproved = true;
@@ -41,13 +41,15 @@ namespace Kistory
             
             if (ves != null & this.is_vessel_fits_to_mission(ves))
             {
-                Debug.Log("[Kistory] Mission is creating by Vessel: " + ves.ToString());
+                KDebug.Log("Mission is creating by Vessel: " + ves.ToString());
 
                 this.missionId = ves.id;
                 this.missionApproved = true;
                 this.missionName = ves.GetName();
                 this.missionSituation = ves.situation;
                 this.missionTime = HighLogic.CurrentGame.flightState.universalTime;
+
+                if ( String.IsNullOrEmpty(this.missionName) ) this.missionName = ves.name; // Let's see the unknown created vessels
             }
             else this.missionApproved = false;
         }
@@ -62,31 +64,36 @@ namespace Kistory
             if (type != VesselType.SpaceObject & type != VesselType.EVA & type != VesselType.Flag & type != VesselType.Debris)
             {
             // === Debug information ===
-            Debug.Log("[Kistory] Vessel debug information: ");
-            Debug.Log("[Kistory] ves.name: " + ves.name);
-            Debug.Log("[Kistory] ves.vesselName: " + ves.vesselName);
-            Debug.Log("[Kistory] ves.GetInstanceID: " + ves.GetInstanceID().ToString());
-            //Debug.Log("[Kistory] ves.GetVessel: " + ves.GetVessel().ToString());
-            //Debug.Log("[Kistory] ves.vesselType: " + ves.vesselType.ToString());
-            //Debug.Log("[Kistory] ves.vesselRanges: " + ves.vesselRanges.ToString());
-            //Debug.Log("[Kistory] ves.vesselTransform: " + ves.vesselTransform.ToString());
-            //Debug.Log("[Kistory] ves.VesselValues: " + ves.VesselValues.ToString());
-            //Debug.Log("[Kistory] ves.GetType: " + ves.GetType().ToString());
-            Debug.Log("[Kistory] ves.GetTotalMass: " + ves.GetTotalMass().ToString());
-            //Debug.Log("[Kistory] ves.GetTransform: " + ves.GetTransform().ToString());
-            //Debug.Log("[Kistory] ves.tag: " + ves.tag.ToString());            
-            Debug.Log("[Kistory] ves.loaded: " + ves.loaded.ToString());            
-            Debug.Log("[Kistory] ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString());
-            Debug.Log("[Kistory] ves.isActiveVessel: " + ves.isActiveVessel.ToString());
-            Debug.Log("[Kistory] ves.isCommandable: " + ves.isCommandable.ToString());
-            Debug.Log("[Kistory] ves.IsControllable: " + ves.IsControllable.ToString());                     
-            Debug.Log("[Kistory] ves.launchTime: " + ves.launchTime.ToString());
-            Debug.Log("[Kistory] ves.missionTime: " + ves.missionTime.ToString());
-            Debug.Log("[Kistory] ves.packed: " + ves.packed.ToString());
-            Debug.Log("[Kistory] ves.situation: " + ves.situation.ToString());
-            Debug.Log("[Kistory] ves.state: " + ves.state.ToString());
-            //Debug.Log("[Kistory] ves.ctrlState: " + ves.ctrlState.ToString());
-            Debug.Log("[Kistory] ves.currentStage: " + ves.currentStage.ToString());
+            KDebug.Log("Vessel debug information: ");
+            KDebug.Log("ves.name: " + ves.name);
+            KDebug.Log("ves.vesselName: " + ves.vesselName);
+            KDebug.Log("ves.GetInstanceID: " + ves.GetInstanceID().ToString());
+            //KDebug.Log("ves.GetVessel: " + ves.GetVessel().ToString());
+            //KDebug.Log("ves.vesselType: " + ves.vesselType.ToString());
+            //KDebug.Log("ves.vesselRanges: " + ves.vesselRanges.ToString());
+            //KDebug.Log("ves.vesselTransform: " + ves.vesselTransform.ToString());
+            //KDebug.Log("ves.VesselValues: " + ves.VesselValues.ToString());
+            //KDebug.Log("ves.GetType: " + ves.GetType().ToString());
+            KDebug.Log("ves.GetTotalMass: " + ves.GetTotalMass().ToString());
+            //KDebug.Log("ves.GetTransform: " + ves.GetTransform().ToString());
+            //KDebug.Log("ves.tag: " + ves.tag.ToString());            
+            KDebug.Log("ves.loaded: " + ves.loaded.ToString());            
+            KDebug.Log("ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString());
+            KDebug.Log("ves.isActiveVessel: " + ves.isActiveVessel.ToString());
+            KDebug.Log("ves.isCommandable: " + ves.isCommandable.ToString());
+            KDebug.Log("ves.IsControllable: " + ves.IsControllable.ToString());                     
+            KDebug.Log("ves.launchTime: " + ves.launchTime.ToString());
+            KDebug.Log("ves.missionTime: " + ves.missionTime.ToString());
+            KDebug.Log("ves.packed: " + ves.packed.ToString());
+            KDebug.Log("ves.situation: " + ves.situation.ToString());
+            KDebug.Log("ves.state: " + ves.state.ToString());
+            //KDebug.Log("ves.ctrlState: " + ves.ctrlState.ToString());
+            KDebug.Log("ves.currentStage: " + ves.currentStage.ToString());
+            }else if(type == VesselType.EVA)
+            {
+                KDebug.Log("EVA debug information: ");
+                KDebug.Log("ves.vesselName: " + ves.vesselName);
+                KDebug.Log("ves.rootPart: " + ves.rootPart.ToString());                
             }
             
             /*
@@ -105,7 +112,7 @@ namespace Kistory
             // (ves.missionTime < 0.1); Condition for the mission time. It should be checked only if we create a new flight.
 
             // This conditions should be ok
-            Debug.Log("[Kistory] Vessel conditions are ok for Aproove");
+            KDebug.Log("Is vessel conditions are ok for aproove for " + VesselType.Ship.ToString() + " " + ves.name + "?");
             return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded;  // Apparently the last parameter (ves.loaded) needs to be check
         }
 
@@ -113,37 +120,54 @@ namespace Kistory
 
         # region Add Entry
         // general function to add message
-        public void add_entry(String message)
+        public void add_entry(Entry.Situations S, String message)
         {
-            Debug.Log("[Kistory] Add message from the Mission class: " + message);
-            Entry e = new Entry();
-            e.add(message);
-            if (FlightGlobals.ActiveVessel != null)
-            {
-                e.set_time(FlightGlobals.ActiveVessel.missionTime);
-            }
-            this.entries.Add(e);
+            KDebug.Log("Add message from the Mission class: " + message);
+            add_entry(S, FlightGlobals.ActiveVessel, message);
         }
 
         // Add antry not from Acrive vessel
-        public void add_entry(Vessel ves, String message)
+        public void add_entry(Entry.Situations S,  Vessel ves, String message)
         {
-            Debug.Log("[Kistory] Add message from the Mission class: " + message);
+            KDebug.Log("Add message from the Mission class: " + message);
+
+            // If we have CRASH situation we need to add the part to the previous Entry
+            if (S == Entry.Situations.DESTROYED & ves != null & entries.Count > 0) // Should be applyed only to the active Vessel and with 
+            {
+                Entry last = entries[entries.Count - 1];
+                double timeMargin = 1; // 1 mioinim time before next crash
+                if(Math.Abs(ves.missionTime - last.get_save_time()) < timeMargin )
+                {
+                    last.add_to_message(", " + message);
+                    return;
+                }
+            }
+            
             Entry e = new Entry();
-            e.add(message);
+            e.add(S, message);
             if (ves != null)
             {
                 e.set_time(ves.missionTime);
+            } // If not ActiveVessel time is set to 0, we need to take time from the previous entry
+            else if (entries.Count > 0)
+            {
+                Entry last = entries[entries.Count - 1];
+                // we add fraction of a second
+                e.set_time(last.get_save_time() + 0.1);
             }
             this.entries.Add(e);
+            
+
+            
+
         }
 
         // Function for loader
-        public void load_entry(String message, double time)
+        public void load_entry(Entry.Situations S, String message, double time)
         {
-            //Debug.Log("[Kistory] Add message from the Mission class: " + message); // No more double load spam
+            //KDebug.Log("Add message from the Mission class: " + message); // No more double load spam
             Entry e = new Entry();
-            e.load(message, time);
+            e.load(S, message, time);
             this.entries.Add(e);
         }
 
@@ -154,17 +178,17 @@ namespace Kistory
         }
 
         // Add entry from GUI
-        public void add_user_entry(String message)
+        public void add_user_entry( String message)
         {
             Entry e = new Entry();
-            e.add(message);
+            e.add(Entry.Situations.USER, message);
            
 
             double mission_time = this.get_time();
             double current_time = Planetarium.GetUniversalTime();
                 //HighLogic.CurrentGame.flightState.universalTime;            
 
-            Debug.Log("[Kistory] Add from gui, mission_time:" + mission_time.ToString() + " Planetarium.GetUniversalTime():" + Planetarium.GetUniversalTime().ToString() + " flightState.universalTime:" + HighLogic.CurrentGame.flightState.universalTime.ToString());
+            KDebug.Log("Add from gui, mission_time:" + mission_time.ToString() + " Planetarium.GetUniversalTime():" + Planetarium.GetUniversalTime().ToString() + " flightState.universalTime:" + HighLogic.CurrentGame.flightState.universalTime.ToString());
 
             e.set_time( current_time - mission_time ); // For some reason this does not work...
             this.add_entry(e);
@@ -185,14 +209,14 @@ namespace Kistory
 
         public void detele_entry_by_index(int index)
         {
-            Debug.Log("[Kistory] Delete item " + index.ToString());
+            KDebug.Log("Delete item " + index.ToString());
             // check if the entry exist then delete            
             if (this.entries[index] != null)
             {
-                Debug.Log("[Kistory] Entry deleted");
+                KDebug.Log("Entry deleted");
                 this.entries.RemoveAt(index);
             }
-    }
+         }
             
 
         #endregion

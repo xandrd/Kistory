@@ -10,6 +10,7 @@ namespace Kistory
     {
         public String message;
         public Vessel ves;
-        public Vessel.Situations situation;
+        public Entry.Situations situation;
+        public Vessel.Situations vessel_situation;
     }
 }

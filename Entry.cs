@@ -10,10 +10,54 @@ namespace Kistory
     // Now it is just a single message
     class Entry
     {
-        
+        public enum Situations
+        {
+            CREATE,
+            CREATEEVA,
+            DETACHED,
+            RECOVERED,
+            LAUNCH,
+            EVA,
+            KILLED,
+            BOARD,
+            CRASH,
+            DESTROYED,
+            EXPLODE,
+            SITUATION,
+            ORBIT,
+            ESCAPE,
+            SOI,
+            CONTRACT,
+            STAGE,
+            USER
+        }
+
+        private struct MissionStrings
+        {
+            public static String CREATE   = "The new mission";
+            public static String DETACHED = "Detached mission";
+            public static String RECOVERED = "Mission complete!";
+                public static String CREATEEVA = "EVA mission"; // Reserved for separate EVA missions
+            public static String LAUNCH = "Lauched!";
+            public static String EVA = "Kerbal let the Vessel starting Extra-Vehicular Activity";
+            public static String KILLED = "Kerbal onboard was killed";
+            public static String BOARD = "Kerbal board";
+            public static String CRASH = "Chash!";
+            public static String DESTROYED = "Part destroyed";
+            public static String EXPLODE = "Part exploded";
+            public static String SITUATION = "Situation changed";
+                public static String ORBIT = "Orbit closed";
+                public static String ESCAPE = "On escape trajectory";
+            public static String SOI = "Main body changed";
+            public static String CONTRACT = "Contract finished";
+            public static String STAGE = "Stage activated";
+        }
+
+
         //private List<String> messages = new List<String>();
         private String message;
         private double time;
+        private Situations situation;
         private String screenShot;
 
         #region create Entry
@@ -23,34 +67,38 @@ namespace Kistory
             this.message = "";
             this.time = 0;
             this.screenShot = null;
-            //Debug.Log("[Kistory] Entry created");
+            //KDebug.Log("Entry created");
         }
 
-        public void add(String m)
+        public void add(Situations S) // Let Entry deside the content
         {
-            this.message = m;
-            this.time = 0;
-            this.print_message();
-            Debug.Log("[Kistory] add to entry: " + m);
+            this.add(S, "");
         }
 
-        public void add(String m, double t)
+        public void add(Situations S, String m)
         {
-            this.message = m;
-            this.time = t;
-            this.print_message();
-            Debug.Log("[Kistory] add to entry: " + t + " | " + m);
-                        
+            this.add(S, m, 0);            
         }
 
-        public void load(String m, double t)
+        public void add(Situations S, String m, double t)
         {
+            this.situation = S;
             this.message = m;
             this.time = t;
-
-            //Debug.Log("[Kistory] load to entry: " + t + " | " + m);
+            this.print_message();
+            KDebug.Log("add to entry: " + t + " | " + m);                        
         }
 
+        public void load(Situations S, String m, double t) 
+        {
+            this.situation = S;
+            this.message = m;
+            this.time = t;
+
+            //KDebug.Log("load to entry: " + t + " | " + m);
+        }
+
+        // Show on screen
         public void print_message()
         {
             ScreenMessages.PostScreenMessage(this.get_short_string(), 1f, ScreenMessageStyle.UPPER_RIGHT);
@@ -59,6 +107,13 @@ namespace Kistory
         #endregion
         
         #region Set Properties
+
+        // Add string to the message
+        public void add_to_message(String m)
+        {
+            this.message = this.message + m;
+        }
+
         public void set_time(double t)
         {
             this.time = t;
@@ -67,39 +122,104 @@ namespace Kistory
         #endregion
 
         #region Get Properties
-        public String get_message()
+        // methods to saving
+        public String get_save_message()
         {
-            return  this.message;
+            return this.message;
         }
-        public double get_time()
+        public double get_save_time()
         {
             return this.time;
         }
-        public String get_time_str()
+        public Situations get_save_situation()
+        {
+            return this.situation;
+        }
+
+        //
+        private String get_message()
+        {
+            String prefix;
+            String separator = ":";
+
+            switch (this.situation)
+            {
+                case Situations.CREATE:
+                    prefix = MissionStrings.CREATE;
+                    break;
+                case Situations.DETACHED:
+                    prefix = MissionStrings.DETACHED;
+                    break;
+                case Situations.LAUNCH:
+                    prefix = MissionStrings.LAUNCH;
+                    separator = "";
+                    break;
+                case Situations.EVA:
+                    prefix = MissionStrings.EVA;
+                    break;
+                case Situations.KILLED:
+                    prefix = MissionStrings.KILLED;
+                    break;
+                case Situations.BOARD:
+                    prefix = MissionStrings.BOARD;
+                    break;
+                case Situations.EXPLODE:
+                    prefix = MissionStrings.EXPLODE;
+                    break;
+                case Situations.DESTROYED:
+                    prefix = MissionStrings.DESTROYED;
+                    break;
+                case Situations.CRASH:
+                    prefix = MissionStrings.CRASH;
+                    separator = "";
+                    break;
+                case Situations.SITUATION:
+                    prefix = MissionStrings.SITUATION;
+                    break;
+                case Situations.STAGE:
+                    prefix = MissionStrings.STAGE;
+                    break;
+                case Situations.ORBIT:
+                    prefix = MissionStrings.ORBIT;
+                    break;
+                case Situations.SOI:
+                    prefix = MissionStrings.SOI;
+                    break;
+                case Situations.CONTRACT:
+                    prefix = MissionStrings.CONTRACT;
+                    break;
+                default:
+                    prefix = "";
+                    separator = "";
+                    break;
+
+            }
+
+            return prefix + " " + separator + " "+ this.message;
+        }
+        private String get_time_str()
         {
             DateTime t = new DateTime();
             t = t.AddSeconds(this.time);
 
             return t.ToString("dd-MM-yy HH:mm:ss");
         }
-
-        public String get_short_time_str()
+        private String get_short_time_str()
         {
             DateTime t = new DateTime();
             t = t.AddSeconds(this.time);
 
             return t.ToString("HH:mm:ss");
-        }
-
-        // This function format the entry string
+        }    
+        
+        // methods to display
         public String get_entry_string()
         {
-            return "[" + this.get_time_str() + "] " + this.message;
+            return "[" + this.get_time_str() + "] " + this.get_message();
         }
-
         public String get_short_string()
         {
-            return "[" + this.get_short_time_str() + "] " + this.message;
+            return "[" + this.get_short_time_str() + "] " + this.get_message();
         }
 
         #endregion

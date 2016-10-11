@@ -4,3 +4,8 @@ obj/
 *.sln
 *.v12.*
 bin/
+/plugins/ModuleManager.2.6.25.dll
+/plugins/000_Toolbar/Toolbar.version
+/plugins/000_Toolbar/MiniAVC.xml
+/plugins/000_Toolbar/MiniAVC.dll
+/plugins/000_Toolbar
