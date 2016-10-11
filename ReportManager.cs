@@ -55,6 +55,8 @@ namespace Kistory
             GameEvents.onNewVesselCreated.Add(this.on_new_create);
             GameEvents.onVesselRecovered.Add(this.on_recovered);
 
+            GameEvents.onVesselRename.Add(this.on_detached_rename);
+
             GameEvents.onCrewBoardVessel.Add(this.on_board); // Kerbal board to the mission Vessel (active vessel is Kerbal)
             GameEvents.onCrewKilled.Add(this.on_killed);     // Kerbal died. Mission will not be found if Kerbal died outside the Vessel
 
@@ -192,6 +194,7 @@ namespace Kistory
                     else
                     {                                  
                         E.add(Entry.Situations.DETACHED, M.get_name(), (double)0);
+                        // To collect the name of the mission we probably need to listed Rename event
                     }
                     M.add_entry( E );
                     this.add_mission(M);
@@ -210,6 +213,21 @@ namespace Kistory
             KDebug.Log("on_recovered " + ves.vesselType.ToString() + " " + ves.vesselName);
 
             this.add_message(Entry.Situations.RECOVERED, ves);
+        }
+
+        private void on_detached_rename(GameEvents.HostedFromToAction<Vessel, String> data)
+        {
+            KDebug.Log("on_rename");
+            Mission M = this.find_the_mission(data.host);
+            if (M !=null)
+            {                
+                if(M.is_detached_mission())
+                {
+                    KDebug.Log("rename to " + data.to);
+                    M.rename(data.to);
+                }
+
+            }
         }
 
         private void on_launch(EventReport data) // Triggered on launch
@@ -468,12 +486,9 @@ namespace Kistory
         public void add_message(Entry.Situations S, ProtoVessel ves)
         {
             KDebug.Log("add_message with ProtoVessel");
-
             Mission M = this.find_the_mission(ves);
             if (M != null)
-                M.add_entry(S, ves, "");
-            else
-                add_message(S, ""); // Here we will try to find active vessel
+                M.add_entry(S, "");
         }
 
         // Add message from coroutine. We check the situation and change the situation

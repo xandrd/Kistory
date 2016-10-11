@@ -116,6 +116,12 @@ namespace Kistory
             return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded;  // Apparently the last parameter (ves.loaded) needs to be check
         }
 
+        // Change the name if nessesary
+        public void rename(String newName)
+        {
+            missionName = newName;
+        }
+
         #endregion
 
         # region Add Entry
@@ -254,6 +260,15 @@ namespace Kistory
         public void set_situation(Vessel.Situations situation)
         {
             this.missionSituation = situation;
+        }
+
+        public bool is_detached_mission()
+        {
+            if (entries.Count > 0)
+                if (entries[0].get_save_situation() == Entry.Situations.DETACHED)
+                    return true;
+
+            return false;
         }
 
         #endregion
