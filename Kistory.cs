@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Collections;
 using UnityEngine;
-using Toolbar;
 
 namespace Kistory
 {
@@ -15,11 +15,6 @@ namespace Kistory
         
 
         /////  not in use at the moment...
-        private DateTime eventTime;
-        private String str_eventTime()
-        {
-            return eventTime.Year.ToString() + eventTime.Month.ToString() + eventTime.Day.ToString() + eventTime.Hour.ToString() + eventTime.Minute.ToString() + eventTime.Second.ToString();
-        }
         private void make_screenshot(String type)
         {
             String letter;
@@ -46,12 +41,23 @@ namespace Kistory
             StartCoroutine( delay_screenshot(2, fileName) ); 
             
         }
-        IEnumerator delay_screenshot(float waitTime, String fileName)
+        private IEnumerator delay_screenshot(float waitTime, String fileName)
         {
             yield return new WaitForSeconds(waitTime);
             Application.CaptureScreenshot(fileName);
         }
-        ////
+        //screeshot message, ass a second so it not interfier with the game
+        private DateTime eventTime;
+        private String str_eventTime()
+        {
+            eventTime = DateTime.Now;
+            return eventTime.Year.ToString() + eventTime.Month.ToString() + eventTime.Day.ToString() + eventTime.Hour.ToString() + eventTime.Minute.ToString() + eventTime.Second.ToString();
+        }
+        private IEnumerator delayed_message(String message)
+        {
+            yield return new WaitForSeconds(1f);
+            ScreenMessages.PostScreenMessage(message, 1f, ScreenMessageStyle.LOWER_CENTER);
+        }
 
         // Run once at the mode loading
         public void Awake()            
@@ -66,7 +72,7 @@ namespace Kistory
             
             this.eventTime = DateTime.Now; // ?
 
-            KDebug.Log("Awake");
+            KDebug.Log("Awake", KDebug.Type.MONO);
         }
 
         // Load before the first frame
@@ -103,58 +109,91 @@ namespace Kistory
         // .. dispose
         void OnDestroy()
         {
-            KDebug.Log("OnDestroy");
+            KDebug.Log("OnDestroy", KDebug.Type.MONO);
 
             //if(this._windows != null)
             //   this._windows.Destroy();
 
-            KDebug.Log("OnDestroy events");
+            KDebug.Log("OnDestroy events", KDebug.Type.MONO);
             if (report != null)
                 report.clear();
         }
 
         public void ShowWindow() 
         {
-            KDebug.Log("ShowWindow");
+            KDebug.Log("ShowWindow", KDebug.Type.MONO);
             _windows.Show();
         }
 
         public void CloseWindow() 
         {
-            KDebug.Log("CloseWindow");
+            KDebug.Log("CloseWindow", KDebug.Type.MONO);
             _windows.Close();
         }
 
         // Corutine add message
         private IEnumerator add_delayed_message(EntryCorutine data)
         {
-            KDebug.Log("pre add_delayed_message");
+            KDebug.Log("pre add_delayed_message", KDebug.Type.CORUTINE);
 
             float waitTime = 3;
             //this._situationRunning = true;
             yield return new WaitForSeconds(waitTime);
-            KDebug.Log("post add_delayed_message");
+            KDebug.Log("post add_delayed_message", KDebug.Type.CORUTINE);
             report.add_situation_message(data.situation, data.ves, data.message, data.vessel_situation);
         }
 
-        // Corutine add message and photo
+        // Corutine add message and photo Very ugly function at that moment
         // This function is not finished yet!!!! 
-        private IEnumerator add_delayed_message_and_photo(EntryCorutine data)
+        private IEnumerator add_message_and_delayed_photo(EntryCorutine data)
         {
-            KDebug.Log("pre add_delayed_message_and_photo");
+            KDebug.Log("pre add_message_and_delayed_photo", KDebug.Type.CORUTINE);
+            Mission M = report.add_message_return_mission(data.situation, data.ves, data.message);
+            int iE = M.get_last_entry_index();           
 
-            String fileName;
-            float waitTime = 3;
+            float waitTime = 1;
+            if(data.situation == Entry.Situations.EXPLODE)
+                waitTime = 0.1f; // Faster screenshot if we have an explosion
+
             //this._situationRunning = true;
             yield return new WaitForSeconds(waitTime);
-            KDebug.Log("post add_delayed_message_and_photo");
-            report.add_situation_message(data.situation, data.ves, data.message, data.vessel_situation);
+            KDebug.Log("post add_message_and_delayed_photo", KDebug.Type.CORUTINE);
+
 
             // We are serching for right filepath!
             // The name of the screenshot  should be constructed!
-            fileName = Application.dataPath + HighLogic.SaveFolder + "/screen.png";
-            KDebug.Log("filename");
-            Application.CaptureScreenshot(fileName);
+            String dirName = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder;
+            var dirInfo = new System.IO.DirectoryInfo(dirName);            
+            String fileName = dirInfo.FullName + "/" + str_eventTime() + data.situation.ToString();
+
+            int cntr = 0;
+            FileInfo info = new FileInfo(fileName + cntr.ToString() + ".png");            
+            while (info != null & info.Exists != false)
+            {
+                cntr++;
+                info = new FileInfo(fileName + cntr.ToString() + ".png");                
+            }
+            fileName = fileName + cntr.ToString() + ".png";
+
+            KDebug.Log("filename " + fileName, KDebug.Type.CORUTINE);
+
+            // Screeshot shold be captured only on Launch and Explosion that is not reacent
+            Boolean addShot = true;
+            if (data.situation == Entry.Situations.EXPLODE & !M.ready_for_shot())
+                addShot = false;
+
+            if(addShot)
+            {
+                KDebug.Log("Capturing screeshot for " + iE.ToString() + " in " + data.situation.ToString() +  " " + fileName, KDebug.Type.CORUTINE);
+                Application.CaptureScreenshot(fileName);
+                while (!File.Exists(fileName))
+                {
+                    yield return null; // apparently it should make the screeshot first and then continue
+                }
+                KDebug.Log("Trasfering screeshot for " + iE.ToString() + " in " + data.situation.ToString() + " " + fileName, KDebug.Type.CORUTINE);
+                M.add_screenshot(fileName, iE);
+                StartCoroutine("delayed_message", "Screenshot captured!");
+            }
         }
 
 

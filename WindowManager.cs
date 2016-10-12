@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Toolbar;
 using UnityEngine;
 
 namespace Kistory
@@ -19,11 +18,11 @@ namespace Kistory
         private bool _windowMainIsOpen, _windowSecondIsOpen, _windowConfirmIsOpen; // flag to check if the window is open
         
         private readonly int _windowMainId = UnityEngine.Random.Range(8000000, 9000000);   // unique ID for the window
-        private readonly int _windowSecondId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
+        //private readonly int _windowSecondId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
         private readonly int _windowConfirmId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
 
-        private Rect _windowMainRect = new Rect(100, 100, 600, 400);   // position and size
-        private Rect _windowSecondRect = new Rect(400, 100, 800, 400); // position and size
+        private Rect _windowMainRect = new Rect(100, 100, Screen.width * 0.5f, Screen.height * 0.7f);   // position and size
+        //private Rect _windowSecondRect = new Rect(400, 100, 800, 400); // position and size
         private Rect _windowConfirmRect = new Rect(Screen.width * 0.5f - 300, Screen.height * 0.5f - 110, 300, 110); // position and size
 
         private Vector2 _scrollMainPosition = new Vector2();   // Scroll inside the window
@@ -97,12 +96,12 @@ namespace Kistory
             _windowMainIsOpen = true;
             _windowSecondIsOpen = false;
             _windowConfirmIsOpen = false;
-            KDebug.Log("Show " + _windowMainIsOpen.ToString() + " " + _windowSecondIsOpen.ToString() + " " + _windowConfirmIsOpen.ToString());
+            KDebug.Log("Show " + _windowMainIsOpen.ToString() + " " + _windowSecondIsOpen.ToString() + " " + _windowConfirmIsOpen.ToString(), KDebug.Type.GUI);
         }
 
         public void Close()
         {
-            KDebug.Log("Close");
+            KDebug.Log("Close", KDebug.Type.GUI);
             _windowMainIsOpen = false;
             _windowSecondIsOpen = false;
             _windowConfirmIsOpen = false;
@@ -188,10 +187,10 @@ namespace Kistory
                 // Button
                 if (GUILayout.Button("Show"))
                 {
-                    KDebug.Log("Show button clicked");
+                    KDebug.Log("Show button clicked", KDebug.Type.GUI);
                     if (!_windowSecondIsOpen)
                     {
-                        KDebug.Log("close main window open second");
+                        KDebug.Log("close main window open second", KDebug.Type.GUI);
                         stringEntryToAdd = ""; // Clear the add string
                         _selectedMissionIndex = report.get_missions().IndexOf(M);
                         _windowSecondIsOpen = true;
@@ -203,7 +202,7 @@ namespace Kistory
                 {
 
                     _selectedMissionToDelete = report.get_missions().IndexOf(M); // Selected mission to delete                    
-                    KDebug.Log("Mission Delete button clicked [" + _selectedMissionToDelete.ToString() + "] ");
+                    KDebug.Log("Mission Delete button clicked [" + _selectedMissionToDelete.ToString() + "] ", KDebug.Type.GUI);
                     _windowConfirmIsOpen = true;
                     _windowSecondIsOpen = false;
                     _windowMainIsOpen = true;
@@ -245,13 +244,20 @@ namespace Kistory
                    
                     _selectedMissionToDeleteEntry = _selectedMissionIndex; // IF we select Enter to delete, which mission?
                     _selectedEntryToDelete = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E); // Selected entry to delete                    
-                    KDebug.Log("Delete button clicked [" + _selectedMissionToDeleteEntry.ToString() + "] (" + _selectedEntryToDelete.ToString() + ")");
+                    KDebug.Log("Delete button clicked [" + _selectedMissionToDeleteEntry.ToString() + "] (" + _selectedEntryToDelete.ToString() + ")", KDebug.Type.GUI);
                     _windowConfirmIsOpen = true;
                     //RenderingManager.AddToPostDrawQueue(_windowConfirmId, new Callback( WindowConfirmOnDraw ));
                     //break;
                     //PopupDialog.SpawnPopupDialog()
                 }
                 GUILayout.EndHorizontal();
+                if (E.has_screeshot)
+                {
+                    float W = _windowMainRect.width - 50;
+                    float H = W * Screen.height / Screen.width;
+                    GUILayout.Box(E.get_texture(), GUILayout.MaxWidth(W), GUILayout.MaxHeight(H));
+                }
+                
             }
 
             GUILayout.EndVertical();
@@ -294,7 +300,7 @@ namespace Kistory
             //GUILayout.BeginArea(new Rect(50, 60, 200, 20));
             if (GUILayout.Button("Delete"))
             {
-                KDebug.Log("Confirm delete button clicked [" + _selectedMissionToDeleteEntry.ToString() + "] (" + _selectedEntryToDelete.ToString()+")");
+                KDebug.Log("Confirm delete button clicked [" + _selectedMissionToDeleteEntry.ToString() + "] (" + _selectedEntryToDelete.ToString()+")", KDebug.Type.GUI);
                 if(isOkEntry)
                 { 
                     report.get_mission_by_index(_selectedMissionToDeleteEntry).detele_entry_by_index(_selectedEntryToDelete);
@@ -321,7 +327,7 @@ namespace Kistory
 
             if (GUILayout.Button("Cancel"))
             {
-                KDebug.Log("Confirm cancel button clicked");
+                KDebug.Log("Confirm cancel button clicked", KDebug.Type.GUI);
                 if (_windowConfirmIsOpen) // this check is not neccecary... 
                     _windowConfirmIsOpen = false;
             }
@@ -355,7 +361,7 @@ namespace Kistory
         {
             if (GUILayout.Button("Add", GUILayout.ExpandWidth(false)))
             {
-                KDebug.Log("Add entry button: " + stringEntryToAdd);
+                KDebug.Log("Add entry button: " + stringEntryToAdd, KDebug.Type.GUI);
                 report.get_mission_by_index(_selectedMissionIndex).add_user_entry(stringEntryToAdd);
             }
         }

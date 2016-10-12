@@ -18,6 +18,9 @@ namespace Kistory
 
         private double missionTime;
 
+        private int lastDestoryed = -1;
+        private int lastExployed  = -1;
+
         private Vessel.Situations missionSituation; 
 
         #region Mission create
@@ -26,7 +29,7 @@ namespace Kistory
         // This needs to load missions
         public Mission(Guid id, String name, double time, Vessel.Situations situation)
         {
-            KDebug.Log("Mission is creating by Id: " + id.ToString());
+            KDebug.Log("Mission is creating by Id: " + id.ToString(), KDebug.Type.LOAD);
             this.missionId = id;
             this.missionName = name;
             this.missionApproved = true;
@@ -41,7 +44,7 @@ namespace Kistory
             
             if (ves != null & this.is_vessel_fits_to_mission(ves))
             {
-                KDebug.Log("Mission is creating by Vessel: " + ves.ToString());
+                KDebug.Log("Mission is creating by Vessel: " + ves.ToString(), KDebug.Type.CREATE);
 
                 this.missionId = ves.id;
                 this.missionApproved = true;
@@ -64,38 +67,38 @@ namespace Kistory
             if (type != VesselType.SpaceObject & type != VesselType.EVA & type != VesselType.Flag & type != VesselType.Debris)
             {
             // === Debug information ===
-            KDebug.Log("Vessel debug information: ");
-            KDebug.Log("ves.name: " + ves.name);
-            KDebug.Log("ves.vesselName: " + ves.vesselName);
-            KDebug.Log("ves.GetInstanceID: " + ves.GetInstanceID().ToString());
+            KDebug.Log("Vessel debug information: ", KDebug.Type.CREATE);
+            KDebug.Log("ves.name: " + ves.name, KDebug.Type.CREATE);
+            KDebug.Log("ves.vesselName: " + ves.vesselName, KDebug.Type.CREATE);
+            KDebug.Log("ves.GetInstanceID: " + ves.GetInstanceID().ToString(), KDebug.Type.CREATE);
             //KDebug.Log("ves.GetVessel: " + ves.GetVessel().ToString());
             //KDebug.Log("ves.vesselType: " + ves.vesselType.ToString());
             //KDebug.Log("ves.vesselRanges: " + ves.vesselRanges.ToString());
             //KDebug.Log("ves.vesselTransform: " + ves.vesselTransform.ToString());
             //KDebug.Log("ves.VesselValues: " + ves.VesselValues.ToString());
             //KDebug.Log("ves.GetType: " + ves.GetType().ToString());
-            KDebug.Log("ves.GetTotalMass: " + ves.GetTotalMass().ToString());
+            KDebug.Log("ves.GetTotalMass: " + ves.GetTotalMass().ToString(), KDebug.Type.CREATE);
             //KDebug.Log("ves.GetTransform: " + ves.GetTransform().ToString());
             //KDebug.Log("ves.tag: " + ves.tag.ToString());            
-            KDebug.Log("ves.loaded: " + ves.loaded.ToString());            
-            KDebug.Log("ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString());
-            KDebug.Log("ves.isActiveVessel: " + ves.isActiveVessel.ToString());
-            KDebug.Log("ves.isCommandable: " + ves.isCommandable.ToString());
-            KDebug.Log("ves.IsControllable: " + ves.IsControllable.ToString());                     
-            KDebug.Log("ves.launchTime: " + ves.launchTime.ToString());
-            KDebug.Log("ves.missionTime: " + ves.missionTime.ToString());
-            KDebug.Log("ves.packed: " + ves.packed.ToString());
-            KDebug.Log("ves.situation: " + ves.situation.ToString());
-            KDebug.Log("ves.state: " + ves.state.ToString());
+            KDebug.Log("ves.loaded: " + ves.loaded.ToString(), KDebug.Type.CREATE);            
+            KDebug.Log("ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.isActiveVessel: " + ves.isActiveVessel.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.isCommandable: " + ves.isCommandable.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.IsControllable: " + ves.IsControllable.ToString(), KDebug.Type.CREATE);                     
+            KDebug.Log("ves.launchTime: " + ves.launchTime.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.missionTime: " + ves.missionTime.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.packed: " + ves.packed.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.situation: " + ves.situation.ToString(), KDebug.Type.CREATE);
+            KDebug.Log("ves.state: " + ves.state.ToString(), KDebug.Type.CREATE);
             //KDebug.Log("ves.ctrlState: " + ves.ctrlState.ToString());
-            KDebug.Log("ves.currentStage: " + ves.currentStage.ToString());
+            KDebug.Log("ves.currentStage: " + ves.currentStage.ToString(), KDebug.Type.CREATE);
             }else if(type == VesselType.EVA)
             {
-                KDebug.Log("EVA debug information: ");
-                KDebug.Log("ves.vesselName: " + ves.vesselName);
-                KDebug.Log("ves.rootPart: " + ves.rootPart.ToString());                
+                KDebug.Log("EVA debug information: ", KDebug.Type.CREATE);
+                KDebug.Log("ves.vesselName: " + ves.vesselName, KDebug.Type.CREATE);
+                KDebug.Log("ves.rootPart: " + ves.rootPart.ToString(), KDebug.Type.CREATE);                
             }
-            
+
             /*
              * ves.situation: PRELAUNCH () <- ?
              * ves.state: INACTIVE
@@ -112,8 +115,9 @@ namespace Kistory
             // (ves.missionTime < 0.1); Condition for the mission time. It should be checked only if we create a new flight.
 
             // This conditions should be ok
-            KDebug.Log("Is vessel conditions are ok for aproove for " + VesselType.Ship.ToString() + " " + ves.name + "?");
-            return (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded;  // Apparently the last parameter (ves.loaded) needs to be check
+            Boolean is_fit = ( (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded );  // Apparently the last parameter (ves.loaded) needs to be check
+            KDebug.Log("Is vessel conditions are ok for aproove for " + VesselType.Ship.ToString() + " " + ves.name + "? " + is_fit.ToString(), KDebug.Type.CREATE);
+            return is_fit;
         }
 
         // Change the name if nessesary
@@ -128,29 +132,44 @@ namespace Kistory
         // general function to add message
         public void add_entry(Entry.Situations S, String message)
         {
-            KDebug.Log("Add message from the Mission class: " + message);
+            KDebug.Log("Add message from the Mission class: " + message, KDebug.Type.CHANGE);
             add_entry(S, FlightGlobals.ActiveVessel, message);
         }
 
         // Add antry not from Acrive vessel
         public void add_entry(Entry.Situations S,  Vessel ves, String message)
         {
-            KDebug.Log("Add message from the Mission class: " + message);
+            KDebug.Log("Add message from the Mission class: " + message, KDebug.Type.CHANGE);
 
             // If we have CRASH situation we need to add the part to the previous Entry
-            if (S == Entry.Situations.DESTROYED & ves != null & entries.Count > 0) // Should be applyed only to the active Vessel and with 
+            if (S == Entry.Situations.DESTROYED & ves != null & entries.Count > 0 & lastDestoryed > 0) // Should be applyed only to the active Vessel and with 
             {
-                Entry last = entries[entries.Count - 1];
-                double timeMargin = 1; // 1 mioinim time before next crash
-                if(Math.Abs(ves.missionTime - last.get_save_time()) < timeMargin )
+                Entry destroyed = entries[lastDestoryed];
+                double timeMargin = 1; // 1 minimum time before next crash
+                if(Math.Abs(ves.missionTime - destroyed.get_save_time()) < timeMargin )
                 {
-                    last.add_to_message(", " + message);
+                    destroyed.add_to_message(", " + message);
+                    return;
+                }else
+                {
+                    lastDestoryed = -1;
+                }
+            }
+
+            // If we have CRASH situation we need to add the part to the previous Entry
+            if (S == Entry.Situations.EXPLODE & ves != null & entries.Count > 0 & lastExployed > 0) // Should be applyed only to the active Vessel and with 
+            {
+                Entry exploded = entries[lastExployed];
+                double timeMargin = 1; // 1 minimum time before next exposion
+                if (Math.Abs(ves.missionTime - exploded.get_save_time()) < timeMargin)
+                {                    
                     return;
                 }
             }
-            
+
             Entry e = new Entry();
             e.add(S, message);
+
             if (ves != null)
             {
                 e.set_time(ves.missionTime);
@@ -162,10 +181,12 @@ namespace Kistory
                 e.set_time(last.get_save_time() + 0.1);
             }
             this.entries.Add(e);
-            
 
-            
-
+            // Set last destroyed adn exploided index
+            if (S == Entry.Situations.DESTROYED)
+                lastDestoryed = entries.Count - 1;
+            if (S == Entry.Situations.EXPLODE)
+                lastExployed = entries.Count - 1;
         }
 
         // Function for loader
@@ -194,10 +215,24 @@ namespace Kistory
             double current_time = Planetarium.GetUniversalTime();
                 //HighLogic.CurrentGame.flightState.universalTime;            
 
-            KDebug.Log("Add from gui, mission_time:" + mission_time.ToString() + " Planetarium.GetUniversalTime():" + Planetarium.GetUniversalTime().ToString() + " flightState.universalTime:" + HighLogic.CurrentGame.flightState.universalTime.ToString());
+            KDebug.Log("Add from gui, mission_time:" + mission_time.ToString() + " Planetarium.GetUniversalTime():" + Planetarium.GetUniversalTime().ToString() + " flightState.universalTime:" + HighLogic.CurrentGame.flightState.universalTime.ToString(), KDebug.Type.CHANGE);
 
             e.set_time( current_time - mission_time ); // For some reason this does not work...
             this.add_entry(e);
+        }
+
+        //Add screenshot to the last entry
+        public void add_screenshot(String file)
+        {
+            if (entries.Count > 0)
+                entries[entries.Count - 1].set_screenshot(file);
+        }
+
+        //Add screeshot to the specific entry
+        public void add_screenshot(String file, int iE)
+        {
+            if (entries.Count > iE)
+                entries[iE].set_screenshot(file);
         }
 
         #endregion
@@ -215,11 +250,11 @@ namespace Kistory
 
         public void detele_entry_by_index(int index)
         {
-            KDebug.Log("Delete item " + index.ToString());
+            KDebug.Log("Delete item " + index.ToString(), KDebug.Type.CHANGE);
             // check if the entry exist then delete            
             if (this.entries[index] != null)
             {
-                KDebug.Log("Entry deleted");
+                KDebug.Log("Entry deleted", KDebug.Type.CHANGE);
                 this.entries.RemoveAt(index);
             }
          }
@@ -271,6 +306,54 @@ namespace Kistory
             return false;
         }
 
+        public int get_last_entry_index()
+        {
+            return entries.Count-1;
+        }
+
+        public bool is_ready_for_exposion()
+        {
+            if (find_last_exposion() > 0)
+            {
+                if(FlightGlobals.ActiveVessel != null)
+                {
+                    double timeMargin = 1;
+                    if (Math.Abs(FlightGlobals.ActiveVessel.missionTime - entries[lastExployed].get_save_time()) < timeMargin)
+                        return false;
+                }
+                    
+            }
+            return true;
+        }
+
+        private int find_last_exposion()
+        {
+            if(lastExployed < 0)
+            {
+                foreach (Entry E in entries)
+                {
+                    if(E.get_save_situation() == Entry.Situations.EXPLODE)
+                    {
+                        lastExployed = entries.IndexOf(E);
+                        return lastExployed;
+                    }
+                }
+            }
+            return lastExployed;
+
+        }
+
+        public bool ready_for_shot()
+        {
+            if(lastExployed > 0)
+            {
+                return !entries[lastExployed].has_screeshot; // if there is not screenshot, we are ready
+            }
+            else
+            {
+                return true;
+            }
+        }
         #endregion
     }
 }

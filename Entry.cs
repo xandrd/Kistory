@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using UnityEngine;
 
 namespace Kistory
@@ -44,7 +46,7 @@ namespace Kistory
             public static String BOARD = "Kerbal board";
             public static String CRASH = "Chash!";
             public static String DESTROYED = "Part destroyed";
-            public static String EXPLODE = "Part exploded";
+            public static String EXPLODE = "Explosion!";
             public static String SITUATION = "Situation changed";
                 public static String ORBIT = "Orbit closed";
                 public static String ESCAPE = "On escape trajectory";
@@ -59,6 +61,8 @@ namespace Kistory
         private double time;
         private Situations situation;
         private String screenShot;
+        private Texture2D shot;
+        public Boolean has_screeshot = false;
 
         #region create Entry
         // Simple creation of the Entry
@@ -86,7 +90,7 @@ namespace Kistory
             this.message = m;
             this.time = t;
             this.print_message();
-            KDebug.Log("add to entry: " + t + " | " + m);                        
+            KDebug.Log("add to entry: " + t + " | " + m, KDebug.Type.CHANGE);                        
         }
 
         public void load(Situations S, String m, double t) 
@@ -119,6 +123,17 @@ namespace Kistory
             this.time = t;
         }
 
+        public void set_screenshot(String file)
+        {
+            has_screeshot = true;
+            screenShot = file;
+
+            // load screeshot
+            loadScreenshot();
+        }
+
+
+
         #endregion
 
         #region Get Properties
@@ -136,6 +151,43 @@ namespace Kistory
             return this.situation;
         }
 
+        public String get_save_screenshot()
+        {
+            return this.screenShot;
+        }
+
+        private void loadScreenshot()
+        {
+
+            
+            //string url = screenShot;
+            //var bytes = File.ReadAllBytes(url);
+            //Texture2D texture = new Texture2D(73, 73);
+            //texture.LoadImage(bytes);
+            //image.texture = texture;
+            KDebug.Log("load screenShot " + screenShot, KDebug.Type.EVENT);
+
+            FileInfo info = new FileInfo(screenShot);
+            if (info != null & info.Exists != false)
+            { 
+                byte[] bytes = File.ReadAllBytes(screenShot);            
+                //shot = new Texture2D(0, 0, TextureFormat.ATF_RGB_DXT1, false);            
+                shot = new Texture2D(0, 0);
+                shot.LoadImage(bytes);
+                //renderer.material.mainTexture = screenshot;
+                KDebug.Log("loaded " + screenShot, KDebug.Type.EVENT);
+            }
+            else
+            {
+                KDebug.Log("File not found  " + screenShot, KDebug.Type.EVENT);
+                has_screeshot = false;
+            }
+        }
+        public Texture2D get_texture()
+        {
+            return shot;
+        }
+
         //
         private String get_message()
         {
@@ -150,6 +202,14 @@ namespace Kistory
                 case Situations.DETACHED:
                     prefix = MissionStrings.DETACHED;
                     break;
+                case Situations.RECOVERED:
+                    prefix = MissionStrings.RECOVERED;
+                    separator = "";
+                    break;
+                case Situations.EXPLODE:
+                    prefix = MissionStrings.EXPLODE;
+                    separator = "";
+                    break;
                 case Situations.LAUNCH:
                     prefix = MissionStrings.LAUNCH;
                     separator = "";
@@ -162,9 +222,6 @@ namespace Kistory
                     break;
                 case Situations.BOARD:
                     prefix = MissionStrings.BOARD;
-                    break;
-                case Situations.EXPLODE:
-                    prefix = MissionStrings.EXPLODE;
                     break;
                 case Situations.DESTROYED:
                     prefix = MissionStrings.DESTROYED;
