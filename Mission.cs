@@ -7,7 +7,9 @@ using UnityEngine;
 namespace Kistory
 {
     // Class Mission correspond to single flying vessel (I hope)
-    // Vessel should have a probe or crew capsule
+    // Vessel should have a probe or crew capsule (as I belive it is commpandable module)
+    // Mission class only operates with arrays of entries and contains information about the mission
+    // It does not operate with event logic
     class Mission
     {        
         public Guid missionId;                  // Unique ID for the mission. Maybe we should take it from the 
@@ -19,7 +21,7 @@ namespace Kistory
         private double missionTime;
 
         private int lastDestoryed = -1;
-        private int lastExployed  = -1;
+        private int lastExployed = -1;
 
         private Vessel.Situations missionSituation; 
 
@@ -35,30 +37,30 @@ namespace Kistory
             this.missionApproved = true;
             this.missionTime = time;
             this.missionSituation = situation;
-         
         }
 
-        // We can create mission if we know the Vessel
+        // Mission is created only if the have a Vessel
+        // Check the vessel, if ok - create the mission
         public Mission(Vessel ves)
         {
             
-            if (ves != null & this.is_vessel_fits_to_mission(ves))
+            if (this.is_vessel_fits_to_mission(ves))
             {
                 KDebug.Log("Mission is creating by Vessel: " + ves.ToString(), KDebug.Type.CREATE);
 
-                this.missionId = ves.id;
+                this.missionId = Mission.mission_id(ves);
                 this.missionApproved = true;
-                this.missionName = ves.GetName();
+                this.missionName = ves.GetName(); // Name of the mission is the name of the Vessel
                 this.missionSituation = ves.situation;
-                this.missionTime = HighLogic.CurrentGame.flightState.universalTime;
+                this.missionTime = Mission.mission_time(); // Static call
 
-                if ( String.IsNullOrEmpty(this.missionName) ) this.missionName = ves.name; // Let's see the unknown created vessels
+                if (String.IsNullOrEmpty(this.missionName) ) this.missionName = ves.name; // Let's see the unknown created vessels
             }
-            else this.missionApproved = false;
+            else this.missionApproved = false; // No mission is created, we should not use this mission object
         }
  
         // Create mission from the Vessel
-        public Boolean is_vessel_fits_to_mission(Vessel ves)
+        private Boolean is_vessel_fits_to_mission(Vessel ves)
         {
             if (ves == null) return false;
 
@@ -66,38 +68,39 @@ namespace Kistory
             //return type == VesselType.Ship | type == VesselType.Probe;
             if (type != VesselType.SpaceObject & type != VesselType.EVA & type != VesselType.Flag & type != VesselType.Debris)
             {
-            // === Debug information ===
-            KDebug.Log("Vessel debug information: ", KDebug.Type.CREATE);
-            KDebug.Log("ves.name: " + ves.name, KDebug.Type.CREATE);
-            KDebug.Log("ves.vesselName: " + ves.vesselName, KDebug.Type.CREATE);
-            KDebug.Log("ves.GetInstanceID: " + ves.GetInstanceID().ToString(), KDebug.Type.CREATE);
-            //KDebug.Log("ves.GetVessel: " + ves.GetVessel().ToString());
-            //KDebug.Log("ves.vesselType: " + ves.vesselType.ToString());
-            //KDebug.Log("ves.vesselRanges: " + ves.vesselRanges.ToString());
-            //KDebug.Log("ves.vesselTransform: " + ves.vesselTransform.ToString());
-            //KDebug.Log("ves.VesselValues: " + ves.VesselValues.ToString());
-            //KDebug.Log("ves.GetType: " + ves.GetType().ToString());
-            KDebug.Log("ves.GetTotalMass: " + ves.GetTotalMass().ToString(), KDebug.Type.CREATE);
-            //KDebug.Log("ves.GetTransform: " + ves.GetTransform().ToString());
-            //KDebug.Log("ves.tag: " + ves.tag.ToString());            
-            KDebug.Log("ves.loaded: " + ves.loaded.ToString(), KDebug.Type.CREATE);            
-            KDebug.Log("ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.isActiveVessel: " + ves.isActiveVessel.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.isCommandable: " + ves.isCommandable.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.IsControllable: " + ves.IsControllable.ToString(), KDebug.Type.CREATE);                     
-            KDebug.Log("ves.launchTime: " + ves.launchTime.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.missionTime: " + ves.missionTime.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.packed: " + ves.packed.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.situation: " + ves.situation.ToString(), KDebug.Type.CREATE);
-            KDebug.Log("ves.state: " + ves.state.ToString(), KDebug.Type.CREATE);
-            //KDebug.Log("ves.ctrlState: " + ves.ctrlState.ToString());
-            KDebug.Log("ves.currentStage: " + ves.currentStage.ToString(), KDebug.Type.CREATE);
-            }else if(type == VesselType.EVA)
-            {
-                KDebug.Log("EVA debug information: ", KDebug.Type.CREATE);
+                #region Debug information 
+                // === Debug information ===
+                KDebug.Log("Vessel debug information: ", KDebug.Type.CREATE);
+                KDebug.Log("ves.name: " + ves.name, KDebug.Type.CREATE);
                 KDebug.Log("ves.vesselName: " + ves.vesselName, KDebug.Type.CREATE);
-                KDebug.Log("ves.rootPart: " + ves.rootPart.ToString(), KDebug.Type.CREATE);                
-            }
+                KDebug.Log("ves.GetInstanceID: " + ves.GetInstanceID().ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.GetVessel: " + ves.GetVessel().ToString());
+                //KDebug.Log("ves.vesselType: " + ves.vesselType.ToString());
+                //KDebug.Log("ves.vesselRanges: " + ves.vesselRanges.ToString());
+                //KDebug.Log("ves.vesselTransform: " + ves.vesselTransform.ToString());
+                //KDebug.Log("ves.VesselValues: " + ves.VesselValues.ToString());
+                //KDebug.Log("ves.GetType: " + ves.GetType().ToString());
+                KDebug.Log("ves.GetTotalMass: " + ves.GetTotalMass().ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.GetTransform: " + ves.GetTransform().ToString());
+                //KDebug.Log("ves.tag: " + ves.tag.ToString());            
+                KDebug.Log("ves.loaded: " + ves.loaded.ToString(), KDebug.Type.CREATE);            
+                KDebug.Log("ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.isActiveVessel: " + ves.isActiveVessel.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.isCommandable: " + ves.isCommandable.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.IsControllable: " + ves.IsControllable.ToString(), KDebug.Type.CREATE);                     
+                KDebug.Log("ves.launchTime: " + ves.launchTime.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.missionTime: " + ves.missionTime.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.packed: " + ves.packed.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.situation: " + ves.situation.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.state: " + ves.state.ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.ctrlState: " + ves.ctrlState.ToString());
+                KDebug.Log("ves.currentStage: " + ves.currentStage.ToString(), KDebug.Type.CREATE);
+                }else if(type == VesselType.EVA)
+                {
+                    KDebug.Log("EVA debug information: ", KDebug.Type.CREATE);
+                    KDebug.Log("ves.vesselName: " + ves.vesselName, KDebug.Type.CREATE);
+                    KDebug.Log("ves.rootPart: " + ves.rootPart.ToString(), KDebug.Type.CREATE);                
+                }
 
             /*
              * ves.situation: PRELAUNCH () <- ?
@@ -111,16 +114,18 @@ namespace Kistory
              * ves.loaded: False
              * ves.vesselType: Ship (!) <- ?
              */
-
+            #endregion
+            
             // (ves.missionTime < 0.1); Condition for the mission time. It should be checked only if we create a new flight.
 
             // This conditions should be ok
-            Boolean is_fit = ( (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded );  // Apparently the last parameter (ves.loaded) needs to be check
-            KDebug.Log("Is vessel conditions are ok for aproove for " + VesselType.Ship.ToString() + " " + ves.name + "? " + is_fit.ToString(), KDebug.Type.CREATE);
-            return is_fit;
+            Boolean is_ok = ( (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded );  // Apparently the last parameter (ves.loaded) needs to be check
+            KDebug.Log("Is vessel conditions are ok for aproove for " + VesselType.Ship.ToString() + " " + ves.name + "? " + is_ok.ToString(), KDebug.Type.CREATE);
+            return is_ok;
         }
 
         // Change the name if nessesary
+        // NOT IS USE
         public void rename(String newName)
         {
             missionName = newName;
@@ -136,37 +141,13 @@ namespace Kistory
             add_entry(S, FlightGlobals.ActiveVessel, message);
         }
 
+
         // Add antry not from Acrive vessel
+        // NEEDS TO BE CHANGE!!!!
         public void add_entry(Entry.Situations S,  Vessel ves, String message)
         {
             KDebug.Log("Add message from the Mission class: " + message, KDebug.Type.CHANGE);
-
-            // If we have CRASH situation we need to add the part to the previous Entry
-            if (S == Entry.Situations.DESTROYED & ves != null & entries.Count > 0 & lastDestoryed > 0) // Should be applyed only to the active Vessel and with 
-            {
-                Entry destroyed = entries[lastDestoryed];
-                double timeMargin = 1; // 1 minimum time before next crash
-                if(Math.Abs(ves.missionTime - destroyed.get_save_time()) < timeMargin )
-                {
-                    destroyed.add_to_message(", " + message);
-                    return;
-                }else
-                {
-                    lastDestoryed = -1;
-                }
-            }
-
-            // If we have CRASH situation we need to add the part to the previous Entry
-            if (S == Entry.Situations.EXPLODE & ves != null & entries.Count > 0 & lastExployed > 0) // Should be applyed only to the active Vessel and with 
-            {
-                Entry exploded = entries[lastExployed];
-                double timeMargin = 1; // 1 minimum time before next exposion
-                if (Math.Abs(ves.missionTime - exploded.get_save_time()) < timeMargin)
-                {                    
-                    return;
-                }
-            }
-
+            
             Entry e = new Entry();
             e.add(S, message);
 
@@ -178,15 +159,24 @@ namespace Kistory
             {
                 Entry last = entries[entries.Count - 1];
                 // we add fraction of a second
-                e.set_time(last.get_save_time() + 0.1);
+                e.set_time(last.get_time() + 0.1);
             }
-            this.entries.Add(e);
+            this.add_entry(e);
+        }
 
-            // Set last destroyed adn exploided index
-            if (S == Entry.Situations.DESTROYED)
-                lastDestoryed = entries.Count - 1;
-            if (S == Entry.Situations.EXPLODE)
-                lastExployed = entries.Count - 1;
+        // All entryes should use this functiono
+        private void add_entry(Entry e)
+        {
+            this.entries.Add(e);
+            switch (e.get_situation())
+            { 
+                case Entry.Situations.DESTROYED:
+                    lastDestoryed = get_last_entry_index();
+                    break;
+                case Entry.Situations.EXPLODE:
+                    lastExployed = get_last_entry_index();
+                    break;
+            }
         }
 
         // Function for loader
@@ -195,12 +185,6 @@ namespace Kistory
             //KDebug.Log("Add message from the Mission class: " + message); // No more double load spam
             Entry e = new Entry();
             e.load(S, message, time);
-            this.entries.Add(e);
-        }
-
-        // Add Entry that we created. Can be used in any cases
-        public void add_entry(Entry e)
-        {
             this.entries.Add(e);
         }
 
@@ -237,7 +221,7 @@ namespace Kistory
 
         #endregion
 
-        #region Get Entry
+        #region Get Entries
 
         public List<Entry> get_entries()
         {
@@ -292,58 +276,69 @@ namespace Kistory
             return this.missionSituation;
         }
 
-        public void set_situation(Vessel.Situations situation)
+        public int get_last_entry_index()
         {
-            this.missionSituation = situation;
+            return entries.Count - 1;
+        }
+
+        public Entry get_last_exploded()
+        {
+            Entry E = get_last_entry_by_situation(lastExployed, Entry.Situations.EXPLODE);
+            if( E != null)
+                lastExployed = entries.IndexOf(E);
+            return E;
+        }
+
+        public Entry get_last_destroyed()
+        {
+            Entry E = get_last_entry_by_situation(lastDestoryed, Entry.Situations.DESTROYED);
+            if (E != null)
+                lastDestoryed = entries.IndexOf(E);
+            return E;
+        }
+
+        private Entry get_last_entry_by_situation(int idx, Entry.Situations S)
+        {
+            // Attempt to find the entry by situaion
+            if (idx < 0)
+            {
+                foreach (Entry E in entries)
+                {
+                    if (E.get_situation() == S)
+                    {                        
+                        return E;
+                    }
+                }
+            }
+            else
+            {
+                if (entries[idx].get_situation() == S)
+                    return entries[idx];
+            }
+            return null;
+        }
+
+        public bool is_too_soon(Entry previousEntry, Vessel ves, double timeMargin)
+        {
+            if (previousEntry != null)
+            {
+                KDebug.Log("Too Soon! ", KDebug.Type.EVENT);
+                return Math.Abs(previousEntry.get_time() - Entry.entry_time(ves)) < timeMargin;
+            }
+                
+            else return false;
         }
 
         public bool is_detached_mission()
         {
             if (entries.Count > 0)
-                if (entries[0].get_save_situation() == Entry.Situations.DETACHED)
+                if (entries[0].get_situation() == Entry.Situations.DETACHED)
                     return true;
 
             return false;
         }
-
-        public int get_last_entry_index()
-        {
-            return entries.Count-1;
-        }
-
-        public bool is_ready_for_exposion()
-        {
-            if (find_last_exposion() > 0)
-            {
-                if(FlightGlobals.ActiveVessel != null)
-                {
-                    double timeMargin = 1;
-                    if (Math.Abs(FlightGlobals.ActiveVessel.missionTime - entries[lastExployed].get_save_time()) < timeMargin)
-                        return false;
-                }
-                    
-            }
-            return true;
-        }
-
-        private int find_last_exposion()
-        {
-            if(lastExployed < 0)
-            {
-                foreach (Entry E in entries)
-                {
-                    if(E.get_save_situation() == Entry.Situations.EXPLODE)
-                    {
-                        lastExployed = entries.IndexOf(E);
-                        return lastExployed;
-                    }
-                }
-            }
-            return lastExployed;
-
-        }
-
-        public bool ready_for_shot()
+                
+        public bool is_ready_for_shot()
         {
             if(lastExployed > 0)
             {
@@ -354,6 +349,40 @@ namespace Kistory
                 return true;
             }
         }
+
+        static double mission_time()
+        {
+            return HighLogic.CurrentGame.flightState.universalTime;
+        }
+
+        public static Guid mission_id(ProtoVessel ves)
+        {
+            return Mission.mission_id(ves.vesselRef);
+        }
+
+        public static Guid mission_id(Vessel ves)
+        {
+            // unfotuntally, this code does not really work as I want
+            /*
+            List < ModuleCommand > L = ves.FindPartModulesImplementing<ModuleCommand>();
+            if (L.Count > 0)
+                return L.Last().part.flightID;
+            else
+                return 0;
+                */
+
+            //return Convert.ToUInt32(ves.id.ToString()); 
+            return ves.id;
+        }
+
+        #endregion
+
+        #region Modify properties
+        public void set_situation(Vessel.Situations situation)
+        {
+            this.missionSituation = situation;
+        }
+
         #endregion
     }
 }

@@ -30,7 +30,7 @@ namespace Kistory
 
         static public void Log(String str, Type t)
         {
-            if (t != Type.GUI & t != Type.MONO & t != Type.LOAD)
+            if (t != Type.GUI) // & t != Type.MONO & t != Type.LOAD)
             {
                 if(SHOWTYPE)
                     KDebug.Log("|" + t.ToString() + "| " + str);

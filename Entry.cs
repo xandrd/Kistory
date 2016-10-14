@@ -9,7 +9,6 @@ using UnityEngine;
 namespace Kistory
 {
     // Class will contain different field for the entry
-    // Now it is just a single message
     class Entry
     {
         public enum Situations
@@ -46,7 +45,7 @@ namespace Kistory
             public static String BOARD = "Kerbal board";
             public static String CRASH = "Chash!";
             public static String DESTROYED = "Part destroyed";
-            public static String EXPLODE = "Explosion!";
+            public static String EXPLODE = "Nearby explosion!";
             public static String SITUATION = "Situation changed";
                 public static String ORBIT = "Orbit closed";
                 public static String ESCAPE = "On escape trajectory";
@@ -61,7 +60,7 @@ namespace Kistory
         private double time;
         private Situations situation;
         private String screenShot;
-        private Texture2D shot;
+        private Texture2D screeshotTexture;
         public Boolean has_screeshot = false;
 
         #region create Entry
@@ -89,7 +88,7 @@ namespace Kistory
             this.situation = S;
             this.message = m;
             this.time = t;
-            this.print_message();
+            this.display_message();
             KDebug.Log("add to entry: " + t + " | " + m, KDebug.Type.CHANGE);                        
         }
 
@@ -102,15 +101,15 @@ namespace Kistory
             //KDebug.Log("load to entry: " + t + " | " + m);
         }
 
-        // Show on screen
-        public void print_message()
+        // Show mesage on the screen
+        public void display_message()
         {
             ScreenMessages.PostScreenMessage(this.get_short_string(), 1f, ScreenMessageStyle.UPPER_RIGHT);
         }
 
         #endregion
         
-        #region Set Properties
+        #region Modify Properties
 
         // Add string to the message
         public void add_to_message(String m)
@@ -131,65 +130,72 @@ namespace Kistory
             // load screeshot
             loadScreenshot();
         }
-
-
-
         #endregion
 
         #region Get Properties
         // methods to saving
-        public String get_save_message()
+        public String get_message()
         {
             return this.message;
         }
-        public double get_save_time()
+        public double get_time()
         {
             return this.time;
         }
-        public Situations get_save_situation()
+        public Situations get_situation()
         {
             return this.situation;
         }
-
-        public String get_save_screenshot()
+        public String get_screenshot()
         {
             return this.screenShot;
         }
+        public Texture2D get_texture()
+        {
+            return screeshotTexture;
+        }
+        
+        public static double entry_time(Vessel ves)
+        {
+            return ves.missionTime;
+        }
+        
+        #endregion
 
+        #region Operational functions
         private void loadScreenshot()
         {
 
-            
+
             //string url = screenShot;
             //var bytes = File.ReadAllBytes(url);
             //Texture2D texture = new Texture2D(73, 73);
             //texture.LoadImage(bytes);
             //image.texture = texture;
-            KDebug.Log("load screenShot " + screenShot, KDebug.Type.EVENT);
+            KDebug.Log("load screenShot " + screenShot, KDebug.Type.LOAD);
 
             FileInfo info = new FileInfo(screenShot);
             if (info != null & info.Exists != false)
-            { 
-                byte[] bytes = File.ReadAllBytes(screenShot);            
+            {
+                byte[] bytes = File.ReadAllBytes(screenShot);
                 //shot = new Texture2D(0, 0, TextureFormat.ATF_RGB_DXT1, false);            
-                shot = new Texture2D(0, 0);
-                shot.LoadImage(bytes);
+                screeshotTexture = new Texture2D(0, 0);
+                screeshotTexture.LoadImage(bytes);
                 //renderer.material.mainTexture = screenshot;
-                KDebug.Log("loaded " + screenShot, KDebug.Type.EVENT);
+                KDebug.Log("loaded " + screenShot, KDebug.Type.LOAD);
             }
             else
             {
-                KDebug.Log("File not found  " + screenShot, KDebug.Type.EVENT);
+                KDebug.Log("File not found  " + screenShot, KDebug.Type.LOAD);
                 has_screeshot = false;
             }
         }
-        public Texture2D get_texture()
-        {
-            return shot;
-        }
 
+        #endregion
+
+        #region Internal get properties
         //
-        private String get_message()
+        private String message_from_missionString()
         {
             String prefix;
             String separator = ":";
@@ -254,31 +260,32 @@ namespace Kistory
 
             return prefix + " " + separator + " "+ this.message;
         }
-        private String get_time_str()
+        private String full_time_str()
         {
             DateTime t = new DateTime();
             t = t.AddSeconds(this.time);
 
             return t.ToString("dd-MM-yy HH:mm:ss");
         }
-        private String get_short_time_str()
+        private String short_time_str()
         {
             DateTime t = new DateTime();
             t = t.AddSeconds(this.time);
 
             return t.ToString("HH:mm:ss");
         }    
+
+
         
-        // methods to display
+        // methods prepare the string for display
         public String get_entry_string()
         {
-            return "[" + this.get_time_str() + "] " + this.get_message();
+            return "[" + this.full_time_str() + "] " + this.message_from_missionString();
         }
         public String get_short_string()
         {
-            return "[" + this.get_short_time_str() + "] " + this.get_message();
+            return "[" + this.short_time_str() + "] " + this.message_from_missionString();
         }
-
         #endregion
 
      }

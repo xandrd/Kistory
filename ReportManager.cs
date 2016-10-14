@@ -37,7 +37,6 @@ namespace Kistory
         }
 
         #region Event Subscribe
-
         private ReportManager()
         {
             KDebug.Log("New ReportManager Created", KDebug.Type.EVENT);
@@ -52,6 +51,8 @@ namespace Kistory
             GameEvents.onGameStateSave.Add(this.on_game_save); // Save Kistory to the save file
 
             GameEvents.onVesselCreate.Add(this.on_create); // When Vessel is created and there is no existing mission - create mission
+            GameEvents.onVesselLoaded.Add(this.on_vessel_loaded);
+
             //GameEvents.onNewVesselCreated.Add(this.on_new_create);
             GameEvents.onVesselRecovered.Add(this.on_recovered);
 
@@ -79,7 +80,6 @@ namespace Kistory
             GameEvents.onStageActivate.Add(this.on_stage);
             //EventData<Contracts.Contract> GameEvents.Contract.onFinished
         }
-
         #endregion
 
         #region Evet Processing
@@ -172,11 +172,11 @@ namespace Kistory
                 foreach (Entry E in M.get_entries())
                 {
                     var nodeEntry = nodeMission.AddNode("Entry");
-                    nodeEntry.AddValue("situation", E.get_save_situation());
-                    nodeEntry.AddValue("message", E.get_save_message()); 
-                    nodeEntry.AddValue("time", E.get_save_time()); 
+                    nodeEntry.AddValue("situation", E.get_situation());
+                    nodeEntry.AddValue("message", E.get_message()); 
+                    nodeEntry.AddValue("time", E.get_time()); 
                     if(E.has_screeshot)
-                        nodeEntry.AddValue("screenshot", E.get_save_screenshot());
+                        nodeEntry.AddValue("screenshot", E.get_screenshot());
                 }
             }
 
@@ -186,39 +186,91 @@ namespace Kistory
         private void on_create(Vessel ves) // Triggered by creating a new vessel. Apparantelly we create a new mission. However, decoupling also create the new mission. Unfortunatelly, we cannot find the name here.
         {
             // This event should be called only if we have a new mission
-            if (ves !=null)
+            KDebug.Log("on_create", KDebug.Type.CREATE);
+
+            Mission M = new Mission(ves); // Possible new mission (ves is check for null)
+            if (M.missionApproved) // Mission was created
             {
-                KDebug.Log("on_create", KDebug.Type.CREATE);
+                KDebug.Log("on_create approved", KDebug.Type.CREATE);
+                int CM = ves.FindPartModulesImplementing<ModuleCommand>().Count();
 
-                Mission M = new Mission(ves); // Possible new mission
-                if (M.missionApproved) // Mission was created
-                {                    
-                    KDebug.Log("on_create approved", KDebug.Type.CREATE);
-                    int CM = ves.FindPartModulesImplementing<ModuleCommand>().Count();
-                    KDebug.Log("Command Modules: " + CM.ToString(), KDebug.Type.CREATE); // should wotk!
+                KDebug.Log("Command Modules: " + CM.ToString(), KDebug.Type.CREATE); // should wotk!
 
-                    Entry E = new Entry();       
-                    if(ves.situation == Vessel.Situations.PRELAUNCH)
-                    {
-                        KDebug.Log("create " + M.get_name(), KDebug.Type.CREATE);
-                        E.add(Entry.Situations.CREATE, M.get_name(), (double)0);
-                    }
-                    else if (CM > 0) // Additional check to exclude debrees
-                    {
-                        KDebug.Log("detached " + M.get_name(), KDebug.Type.CREATE);
-                       
-                        // TODO
-                        // Find the command module and name the mission by command module (if we cannot find how to name it wihtout commant module)
-                        E.add(Entry.Situations.DETACHED, M.get_name(), (double)0);
-                        // To collect the name of the mission we probably need to listed Rename event
-                    }
-                    else
-                    {
-                        return;
-                    }
-                    M.add_entry( E );
+                //Entry E = new Entry();       
+                if(ves.situation == Vessel.Situations.PRELAUNCH)
+                {
+                    KDebug.Log("create " + M.get_name(), KDebug.Type.CREATE);
+
                     this.add_mission(M);
+                    add_event(Entry.Situations.CREATE, ves, M.get_name());
+                    //E.add(Entry.Situations.CREATE, M.get_name(), (double)0);
                 }
+                else if (CM > 0) // Additional check to exclude debrees
+                {
+                    KDebug.Log("detached " + M.get_name(), KDebug.Type.CREATE);
+
+                    // TODO
+                    // Find the command module and name the mission by command module (if we cannot find how to name it wihtout commant module)
+                    // Let's find the command module                    
+
+                    Part P = ves.FindPartModulesImplementing<ModuleCommand>().Last().part;
+
+                    this.add_mission(M);
+                    M.rename(P.partInfo.title);
+                    //add_event(Entry.Situations.DETACHED, ves, M.get_name());
+
+                    add_event(Entry.Situations.DETACHED, ves, P.partInfo.title);
+
+                    //E.add(Entry.Situations.DETACHED, M.get_name(), (double)0);
+                    // To collect the name of the mission we probably need to listed Rename event
+                }
+                else
+                {
+                    return;
+                }
+                // M.add_entry( E ); // I'm not sue I need this
+                    
+            }
+        }
+
+        #region Temporary or not in use functions
+        /// TEMPORARY FUNCTION
+        private void on_vessel_loaded(Vessel ves)
+        {
+
+            KDebug.Log("on loaded: ", KDebug.Type.EVENT);
+            if (ves == null) return;
+
+            VesselType type = ves.vesselType;
+
+            if (type != VesselType.SpaceObject & type != VesselType.EVA & type != VesselType.Flag & type != VesselType.Debris)
+            {
+                // === Debug information ===
+                KDebug.Log("Vessel debug information: ", KDebug.Type.CREATE);
+                KDebug.Log("ves.name: " + ves.name, KDebug.Type.CREATE);
+                KDebug.Log("ves.vesselName: " + ves.vesselName, KDebug.Type.CREATE);
+                KDebug.Log("ves.GetInstanceID: " + ves.GetInstanceID().ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.GetVessel: " + ves.GetVessel().ToString());
+                KDebug.Log("ves.vesselType: " + ves.vesselType.ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.vesselRanges: " + ves.vesselRanges.ToString());
+                //KDebug.Log("ves.vesselTransform: " + ves.vesselTransform.ToString());
+                //KDebug.Log("ves.VesselValues: " + ves.VesselValues.ToString());
+                //KDebug.Log("ves.GetType: " + ves.GetType().ToString());
+                KDebug.Log("ves.GetTotalMass: " + ves.GetTotalMass().ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.GetTransform: " + ves.GetTransform().ToString());
+                //KDebug.Log("ves.tag: " + ves.tag.ToString());            
+                KDebug.Log("ves.loaded: " + ves.loaded.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.isActiveAndEnabled: " + ves.isActiveAndEnabled.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.isActiveVessel: " + ves.isActiveVessel.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.isCommandable: " + ves.isCommandable.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.IsControllable: " + ves.IsControllable.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.launchTime: " + ves.launchTime.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.missionTime: " + ves.missionTime.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.packed: " + ves.packed.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.situation: " + ves.situation.ToString(), KDebug.Type.CREATE);
+                KDebug.Log("ves.state: " + ves.state.ToString(), KDebug.Type.CREATE);
+                //KDebug.Log("ves.ctrlState: " + ves.ctrlState.ToString());
+                KDebug.Log("ves.currentStage: " + ves.currentStage.ToString(), KDebug.Type.CREATE);
             }
         }
 
@@ -234,7 +286,7 @@ namespace Kistory
         {
             KDebug.Log("on_recovered " + ves.vesselType.ToString() + " " + ves.vesselName, KDebug.Type.EVENT);
 
-            this.add_message(Entry.Situations.RECOVERED, ves);
+            this.add_event(Entry.Situations.RECOVERED, ves);
         }
 
         // cannot find this event
@@ -254,7 +306,6 @@ namespace Kistory
             }
         }
         */
-
         // All possible changes
         /*
         private void on_vessel_changed(Vessel ves)
@@ -262,6 +313,8 @@ namespace Kistory
             KDebug.Log("on_vessel_changed " + ves.name + " " + ves.vesselName, KDebug.Type.EVENT);
         }
         */
+        #endregion
+
         private void on_launch(EventReport data) // Triggered on launch
         {
             KDebug.Log("on_launch", KDebug.Type.CREATE);
@@ -272,34 +325,39 @@ namespace Kistory
         private void on_EVA(GameEvents.FromToAction<Part, Part> data)
         {
             KDebug.Log("on_EVA " + data.to.vessel.vesselName + " " + data.to.vessel.rootPart.vessel.vesselName, KDebug.Type.EVENT);
-            this.add_message(Entry.Situations.EVA,  data.to.vessel.vesselName);
-            //this.make_screenshot("EVA");
+            this.add_event(Entry.Situations.EVA,  data.to.vessel.vesselName);
         }
 
         private void on_killed(EventReport report)
         {
             // If Kerbin died outside the vessel we would not be able to find that.
             KDebug.Log("on_killed " + report.sender, KDebug.Type.EVENT);
-            this.add_message(Entry.Situations.KILLED, report.sender);
+            this.add_event(Entry.Situations.KILLED, report.sender);
         }
 
         private void on_board(GameEvents.FromToAction<Part, Part> data)
         {
             KDebug.Log("on_board " + data.from.vessel.vesselName, KDebug.Type.EVENT);
-            this.add_message(Entry.Situations.BOARD, data.to.vessel,  data.from.vessel.vesselName);
+            this.add_event(Entry.Situations.BOARD, data.to.vessel,  data.from.vessel.vesselName);
         }
 
-        // It is unknown when this event happens
-        // TODO: Find the application for this event.
+        // Unfortunatelly, we dont know what exploded
         private void on_explode(GameEvents.ExplosionReaction r)
         {
             KDebug.Log("on_explode: " + r.magnitude.ToString(), KDebug.Type.EVENT);
-            if(r.magnitude >= 0.5) // Should be a little bi more compicated
+            if(r.magnitude >= 0.5 & r.distance < 100) // Take into account only object that were relatevely close
             {
                 // We need to check if we are ready for the next courutine
-                Mission M = this.get_current_mission();                                                
-                if(M.is_ready_for_exposion())
-                    this.manage_photo_corutine(Entry.Situations.EXPLODE, FlightGlobals.ActiveVessel, "");
+                Mission M = this.get_current_mission();
+                Vessel V = FlightGlobals.ActiveVessel;
+                if (M != null)
+                {
+                    double marginTime = 1;
+                    Entry E = M.get_last_exploded();
+                    if (!M.is_too_soon(E, V, marginTime)) // call the courutine only if we ready for the next exposion of the current Vessel
+                        this.manage_photo_corutine(Entry.Situations.EXPLODE, FlightGlobals.ActiveVessel, " (" + Math.Round(r.distance).ToString() + "m away)");
+                }
+                    
             }
                
         }
@@ -307,17 +365,27 @@ namespace Kistory
         private void on_destroyed(Part part)
         {
 
-            KDebug.Log("on_destroyed: " + part.partInfo.title + " " + part.vessel.id, KDebug.Type.EVENT);            
-            // Specific event!
-            // foreach (PartModule module in part.Modules)
-            //     KDebug.Log("on_destroyed: [" + module.moduleName + "] " + module.GetInfo() + " | " + module.guiText + " | " + module.name); //[0].GetInfo()
-            this.add_message(Entry.Situations.DESTROYED, part.vessel, part.partInfo.title);
+            KDebug.Log("on_destroyed: " + part.partInfo.title + " " + part.vessel.id, KDebug.Type.EVENT);
+            // If destroy happend less that some time ago we modify the string
+            // Othervise we add entry
+            Vessel V = part.vessel;
+            String message = part.partInfo.title;
+            Mission M = find_the_mission(part.vessel);
+            if (M!=null)
+            {
+                double marginTime = 1;
+                Entry E = M.get_last_destroyed();
+                if (M.is_too_soon(E, V, marginTime))
+                    E.add_to_message(", " + message); // maybe we need count for parts... Let say more that 10 parts = photo
+                else
+                    this.add_event(Entry.Situations.DESTROYED, V, message);
+            }
         }
 
+        // I'm not sure when this event happens
         private void on_crash(EventReport data)
         {
             // Happens even before Launch
-
             if(data.origin != null)
             { 
                 KDebug.Log("explosionPotential  " + data.origin.explosionPotential.ToString(), KDebug.Type.EVENT);
@@ -327,7 +395,7 @@ namespace Kistory
             }
 
             KDebug.Log("on_crash", KDebug.Type.EVENT);            
-            this.add_message(Entry.Situations.CRASH,"");
+            this.add_event(Entry.Situations.CRASH,""); 
         }
 
         private void on_situation( GameEvents.HostedFromToAction< Vessel, Vessel.Situations > data)
@@ -345,19 +413,19 @@ namespace Kistory
         private void on_soi(GameEvents.HostedFromToAction< Vessel, CelestialBody > data)
         {
             KDebug.Log("on_soi", KDebug.Type.EVENT);
-            add_message(Entry.Situations.SOI, data.host, " from: " + data.from.bodyName + " to: " + data.to.bodyName);
+            add_event(Entry.Situations.SOI, data.host, " from: " + data.from.bodyName + " to: " + data.to.bodyName);
         }
 
         private void on_contract(Contracts.Contract contract)
         {
             KDebug.Log("on_contract", KDebug.Type.EVENT);
-            add_message(Entry.Situations.CONTRACT, " [" + contract.ContractState.ToString() + "] " + contract.Title);
+            add_event(Entry.Situations.CONTRACT, " [" + contract.ContractState.ToString() + "] " + contract.Title);
         }
 
         private void on_stage(int stage)
         {
             KDebug.Log("on_stage", KDebug.Type.EVENT);
-            add_message(Entry.Situations.STAGE, " #" + stage.ToString());
+            add_event(Entry.Situations.STAGE, " #" + stage.ToString());
         }
 
         // Interface
@@ -412,15 +480,19 @@ namespace Kistory
         // Get the mission from vessel. Used during creating of Entry
         private Mission find_the_mission(Vessel ves)
         {
-            Guid id = ves.id; // this is not very good for undocing. New GUID will be created in that case...
+            //Guid id = ves.id; // this is not very good for undocing. New GUID will be created in that case...
+            Guid id = Mission.mission_id(ves);
             return find_the_mission(id);
         }
 
         private Mission find_the_mission(ProtoVessel ves)
         {            
-            return find_the_mission(ves.vesselID);
+            return find_the_mission( Mission.mission_id(ves) );
         }
 
+        //
+        // Main return mission function
+        //       
         private Mission find_the_mission(Guid id)
         {
             foreach (Mission mission in this.missions)
@@ -443,7 +515,7 @@ namespace Kistory
             }
 
             KDebug.Log("MISSION NOT FOUND ", KDebug.Type.EVENT);
-            return null; // ??
+            return null;
         }
 
 
@@ -499,7 +571,7 @@ namespace Kistory
         #region Add Entry
 
         // Add message to current mission. Add message for current vessel
-        public void add_message(Entry.Situations S, String message){
+        public void add_event(Entry.Situations S, String message){
 
             KDebug.Log("add_message: " + message, KDebug.Type.EVENT);
 
@@ -509,7 +581,7 @@ namespace Kistory
         }
 
         // Add message to mission related to other vessel
-        public void add_message(Entry.Situations S, Vessel ves, String message)
+        public void add_event(Entry.Situations S, Vessel ves, String message)
         {
 
             KDebug.Log("add_message: " + message, KDebug.Type.EVENT);
@@ -518,11 +590,11 @@ namespace Kistory
             if (M != null)
                 M.add_entry(S, ves, message);
             else
-                add_message(S, message); // Here we will try to find active vessel
+                add_event(S, message); // Here we will try to find active vessel
         }
 
         // Specific add method for ProtoVessel
-        public void add_message(Entry.Situations S, ProtoVessel ves)
+        public void add_event(Entry.Situations S, ProtoVessel ves)
         {
             KDebug.Log("add_message with ProtoVessel", KDebug.Type.EVENT);
             Mission M = this.find_the_mission(ves);
@@ -531,10 +603,10 @@ namespace Kistory
         }
 
         // Add message from coroutine. We check the situation and change the situation
-        public void add_situation_message(Entry.Situations S, Vessel ves, String message, Vessel.Situations situation)
+        public void add_situation_event(Entry.Situations S, Vessel ves, String message, Vessel.Situations situation)
         {
 
-            KDebug.Log("add_situation_message: " + message, KDebug.Type.CORUTINE);
+            KDebug.Log("add_situation_event: " + message, KDebug.Type.CORUTINE);
 
             Mission M = this.find_the_mission(ves);
             if (M != null & M.get_situation() != situation)
@@ -550,10 +622,9 @@ namespace Kistory
         }
 
         // Add message from coroutine with photo
-        public Mission add_message_return_mission(Entry.Situations S, Vessel ves, String message)
+        public Mission add_event_get_mission(Entry.Situations S, Vessel ves, String message)
         {
-
-            KDebug.Log("add_situation_message with Photo : " + message, KDebug.Type.CORUTINE);            
+            KDebug.Log("add_situation_event with Photo : " + message, KDebug.Type.CORUTINE);            
             Mission M = this.find_the_mission(ves);
             if (M != null)
             {
@@ -563,6 +634,8 @@ namespace Kistory
             return null;
             
         }
+      
+        
         // Function start and stom the corutine. We need to create a delay for our methods.
         private void manage_corutine(Entry.Situations S, Vessel ves, String message, Vessel.Situations situation)
         {
@@ -578,12 +651,12 @@ namespace Kistory
             {
                 KDebug.Log("stop running corutine", KDebug.Type.CORUTINE);
 
-                Kistory.StopCoroutine("add_delayed_message");
+                Kistory.StopCoroutine("add_delayed_event");
             }
 
             KDebug.Log("Start corutine", KDebug.Type.CORUTINE);
             this._situationRunning = true;
-            Kistory.StartCoroutine("add_delayed_message", this.objCorutine);
+            Kistory.StartCoroutine("add_delayed_event", this.objCorutine);
         }
 
         private void manage_photo_corutine(Entry.Situations S, Vessel ves, String message)
@@ -592,7 +665,7 @@ namespace Kistory
             this.objCorutine.ves = ves;
             this.objCorutine.message = message;
             this.objCorutine.situation = S;            
-            Kistory.StartCoroutine("add_message_and_delayed_photo", this.objCorutine);
+            Kistory.StartCoroutine("add_event_and_delayed_photo", this.objCorutine);
         }
 
         #endregion
@@ -644,14 +717,19 @@ namespace Kistory
             GameEvents.onGameStateSave.Remove(this.on_game_save);
 
             GameEvents.onVesselCreate.Remove(this.on_create);
-
-            GameEvents.onLaunch.Remove(this.on_launch);
+            GameEvents.onVesselLoaded.Remove(this.on_vessel_loaded);
 
             GameEvents.onVesselRecovered.Remove(this.on_recovered);
 
-            GameEvents.onCrewOnEva.Remove(this.on_EVA);
+
             GameEvents.onCrewBoardVessel.Remove(this.on_board);
             GameEvents.onCrewKilled.Remove(this.on_killed);
+
+            GameEvents.onLaunch.Remove(this.on_launch);
+            GameEvents.onCrewOnEva.Remove(this.on_EVA);
+
+
+
 
             GameEvents.onPartDie.Remove(this.on_destroyed); 
             GameEvents.onPartExplode.Remove(this.on_explode);

@@ -178,7 +178,7 @@ namespace Kistory
                 // Name                                
                 // Highlight the name is thi is current mission
                 if(FlightGlobals.ActiveVessel != null)                
-                    if(FlightGlobals.ActiveVessel.id == M.missionId)
+                    if( Mission.mission_id(FlightGlobals.ActiveVessel) == M.missionId)
                         GUI.color = Color.green;                                                     
                 GUILayout.Label(M.get_mission_string()); // + " " + M.missionId.ToString());
                         GUI.color = defaultColor;
