@@ -55,8 +55,8 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 
 ### Planned features
 - Screenshot for some of of the events 
- - ~~ Launch ~~
- - ~~ Destruction ~~
+ - ~~Launch~~
+ - ~~Destruction~~
  - Landing \ Splashing
   - (Desending)
  - Get to the orbit
@@ -64,9 +64,9 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - ~~Close window button~~
 - ~~Add event~~
 - Add user screenshot
-- ~~ Delete event ~~
-- ~~ Confirmation to delete ~~
-- ~~ Delete mission (?) ~~
+- ~~Delete event~~
+- ~~Confirmation to delete~~
+- ~~Delete mission (?)~~
 - Options
 
 ## Known bugs
