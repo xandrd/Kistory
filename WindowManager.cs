@@ -35,6 +35,9 @@ namespace Kistory
         private int _selectedMissionToDeleteEntry = -1; // IF we select Enter to delete, which mission?
         private int _selectedEntryToDelete = -1; // Selected entry to delete
 
+        private int _selectedScrollImage = -1; // This is the indication of the selected image that changes to scroll view
+        private Vector2 _imageScrollPosition;
+
         private String stringEntryToAdd;
 
         public WindowManager(ReportManager r)
@@ -257,9 +260,40 @@ namespace Kistory
                 {
                     float W = _windowMainRect.width - 50;
                     float H = W * Screen.height / Screen.width;
-                    GUILayout.Box(E.get_texture(), GUILayout.MaxWidth(W), GUILayout.MaxHeight(H));
+                    // Minimum Width adn Height. Make the pitcure nice
+                    GUILayoutOption GW = GUILayout.MinWidth(W); 
+                    GUILayoutOption GH = GUILayout.MinHeight(H);
+                    Texture2D img = E.get_texture();
+                    int Eidx = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E); // current index
+
+                    GUILayout.BeginVertical(GW, GH);
+                    if (_selectedScrollImage != Eidx) // If has not been clicked show the "zoom" button
+                    { 
+                        if (GUILayout.Button(new GUIContent(img, "Click to zoom in"), GUIStyle.none, GW, GH))  //GUIStyle.none
+                        {
+                            if (_selectedScrollImage == Eidx)
+                                _selectedScrollImage = -1;
+                            else
+                                _selectedScrollImage = Eidx; 
+                            KDebug.Log("Screenshot zoom button pressed", KDebug.Type.GUI);
+                        }
+                    }
+                    else // This is zoom case
+                    {
+                        _imageScrollPosition = GUILayout.BeginScrollView(_imageScrollPosition, GH); // Begin the ScrollView, (!) only GH is applyed. Othervise it is a mess
+                        if (GUILayout.Button(new GUIContent(img, "Click to zoom out"), GUIStyle.none, GUILayout.Width(img.width), GUILayout.Height(img.height))) //
+                        {
+                            if (_selectedScrollImage == Eidx)
+                                _selectedScrollImage = -1;
+                            else
+                                _selectedScrollImage = Eidx;
+                            KDebug.Log("Screenshot unzoom button pressed", KDebug.Type.GUI);
+                        }
+                        GUILayout.EndScrollView(); // End the ScrollView
+                    }
+                    GUILayout.EndVertical();
                 }
-                
+
             }
 
             GUILayout.EndVertical();
@@ -357,6 +391,7 @@ namespace Kistory
             {
                 _windowMainIsOpen = true;
                 _windowSecondIsOpen = false;
+                _selectedScrollImage = -1; // Reset the screenshot scroll if we have one
             }
         }
         private void AddButton()
@@ -365,6 +400,7 @@ namespace Kistory
             {
                 KDebug.Log("Add entry button: " + stringEntryToAdd, KDebug.Type.GUI);
                 report.get_mission_by_index(_selectedMissionIndex).add_user_entry(stringEntryToAdd);
+                stringEntryToAdd = "";
             }
         }
 

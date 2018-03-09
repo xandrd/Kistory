@@ -6,13 +6,13 @@ using UnityEngine;
 namespace Kistory
 {
     
-    [KSPAddon(KSPAddon.Startup.Flight, false)]     
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]     
     public class Kistory : MonoBehaviour
     {
         // Main class it is a wrapper for plugin
         
         private ReportManager report;   // Not-Singlton that works with reports, missions, messages
-        private WindowManager _windows; // Draw window and button for toolbar
+        private WindowManager windows; // Draw window and button for toolbar
 
          //screeshot message, as a second so it not interfier with the game
         private DateTime eventTime;
@@ -26,7 +26,7 @@ namespace Kistory
             this.report = new ReportManager(); // Create the instance
             this.report.Kistory = this; // We need this for corutines
 
-            this._windows = new WindowManager(report); // we need this to draw interface
+            this.windows = new WindowManager(report); // we need this to draw interface
             
             this.eventTime = DateTime.Now; // ?
 
@@ -44,7 +44,7 @@ namespace Kistory
         // Calls on each draw step, more often than Update()
         void OnGUI()
         {
-            this._windows.OnDraw();
+            this.windows.OnDraw();
         }
 
         // .. dispose
@@ -52,8 +52,8 @@ namespace Kistory
         {
             KDebug.Log("OnDestroy", KDebug.Type.MONO);
 
-            if(this._windows != null)
-               this._windows.Close();
+            if(this.windows != null)
+               this.windows.Close();
 
             KDebug.Log("OnDestroy events", KDebug.Type.MONO);
             if (this.report != null)
@@ -67,13 +67,13 @@ namespace Kistory
         public void ShowWindow() 
         {
             KDebug.Log("ShowWindow", KDebug.Type.MONO);
-            _windows.Show();
+            windows.Show();
         }
 
         public void CloseWindow() 
         {
             KDebug.Log("CloseWindow", KDebug.Type.MONO);
-            _windows.Close();
+            windows.Close();
         }
 
         // Corutine add message
@@ -129,6 +129,7 @@ namespace Kistory
             KDebug.Log("filename " + fileName, KDebug.Type.CORUTINE);
 
             KDebug.Log("Capturing screeshot for " + iE.ToString() + " in " + data.situation.ToString() +  " " + fileName, KDebug.Type.CORUTINE);
+            // ScreenCapture.CaptureScreenshot("SomeLevel");
             Application.CaptureScreenshot(fileName); // SCREEN SHOT
             while (!File.Exists(fileName))
             {

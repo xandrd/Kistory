@@ -154,7 +154,18 @@ namespace Kistory
         {
             return screeshotTexture;
         }
-        
+
+        public Texture2D get_texture_resized(int width, int height)
+        {
+            Texture2D screeshotTextureResized = new Texture2D(screeshotTexture.width, screeshotTexture.height);
+            Graphics.CopyTexture(screeshotTexture, screeshotTextureResized);
+            screeshotTextureResized.Resize(width, height);
+            screeshotTextureResized.Apply();
+            //screeshotTextureResized.filterMode = FilterMode.Point;            
+            return screeshotTextureResized;
+        }
+
+
         public static double entry_time(Vessel ves)
         {
             return ves.missionTime;
@@ -179,9 +190,15 @@ namespace Kistory
             {
                 byte[] bytes = File.ReadAllBytes(screenShot);
                 //shot = new Texture2D(0, 0, TextureFormat.ATF_RGB_DXT1, false);            
-                screeshotTexture = new Texture2D(0, 0);
+                screeshotTexture = new Texture2D(2, 2,  TextureFormat.RGB24, false);
                 screeshotTexture.LoadImage(bytes);
-                //renderer.material.mainTexture = screenshot;
+
+                //screeshotTexture.Compress(false);
+                //screeshotTexture.Apply(false, true);
+
+                //screeshotTexture.filterMode = FilterMode.Trilinear;
+                //screeshotTexture.anisoLevel = 9;
+                //screeshotTexture.mipMapBias = -0.5f;
                 KDebug.Log("loaded " + screenShot, KDebug.Type.LOAD);
             }
             else
@@ -265,14 +282,14 @@ namespace Kistory
             DateTime t = new DateTime();
             t = t.AddSeconds(this.time);
 
-            return t.ToString("dd-MM-yy HH:mm:ss");
+            return (t.Year-1).ToString() + "y, " + (t.DayOfYear-1).ToString() + "d, " + t.ToString("HH:mm:ss");
         }
         private String short_time_str()
         {
             DateTime t = new DateTime();
             t = t.AddSeconds(this.time);
 
-            return t.ToString("HH:mm:ss");
+            return (t.TimeOfDay.TotalDays-1).ToString() + "d, " + t.ToString("HH:mm:ss");
         }    
 
 

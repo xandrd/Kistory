@@ -119,7 +119,7 @@ namespace Kistory
             // (ves.missionTime < 0.1); Condition for the mission time. It should be checked only if we create a new flight.
 
             // This conditions should be ok
-            Boolean is_ok = ( (ves.isCommandable | ves.IsControllable) & (type == VesselType.Ship | type == VesselType.Probe) & ves.loaded );  // Apparently the last parameter (ves.loaded) needs to be check
+            Boolean is_ok = ( (ves.isCommandable | ves.IsControllable) & (type == VesselType.Plane | type == VesselType.Rover | type == VesselType.Lander | type == VesselType.Relay | type == VesselType.Station | type == VesselType.Ship | type == VesselType.Probe) & ves.loaded );  // Apparently the last parameter (ves.loaded) needs to be check
             KDebug.Log("Is vessel conditions are ok for aproove for " + VesselType.Ship.ToString() + " " + ves.name + "? " + is_ok.ToString(), KDebug.Type.CREATE);
             return is_ok;
         }
@@ -372,7 +372,10 @@ namespace Kistory
                 */
 
             //return Convert.ToUInt32(ves.id.ToString()); 
-            return ves.id;
+            if (ves)
+                return ves.id;
+            else
+                return new Guid();
         }
 
         #endregion

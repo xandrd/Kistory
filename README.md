@@ -1,6 +1,6 @@
 # Kistory
 Kerbal Space Program mod Kistory
-version: 0.2a
+version: 0.3a
 
 This mod is design to track the events that happen in the game. This is History of your Kerbal Space Program adventure.
 
@@ -21,7 +21,9 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 ### Log events
 - Create a mission (Vessel)
 - Launch
+ - Creates screenshot
 - Structural damage
+ - Creates screenshot
 - EVA
 - Board from EVA
 - Kerbanaut death in the current vessel
@@ -33,9 +35,11 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - ~~Toolbar plugin is used~~
 - KSP button is used
 - Show list of missions
-- Show list of events of selected mission in the separate window
-- Add the Event to the mission
+- Show list of events of the selected mission
+- Add user event (string) to the mission
 - Delete the event from the mission
+- Show screenshot in the same window
+ - Click on screenshot - zoom in, zoom out
 
 
 ## Development
@@ -51,22 +55,24 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 
 ### Planned features
 - Screenshot for some of of the events 
- - Launch
+ - ~~ Launch ~~
+ - ~~ Destruction ~~
  - Landing \ Splashing
   - (Desending)
  - Get to the orbit
 - ~~Show mission and events in the same window~~
 - ~~Close window button~~
 - ~~Add event~~
-- Add screenshot
-- Delete event
-- Confirmation to delete
-- Delete mission (?)
+- Add user screenshot
+- ~~ Delete event ~~
+- ~~ Confirmation to delete ~~
+- ~~ Delete mission (?) ~~
 - Options
 
 ## Known bugs
 - ~~Mission does not create from the Space Center (if we loaded the saved craft)~~
 
 ## ChangeLog ##
+- 0.3a KSP 1.3.1 Supported. Screenshots are added. Internal logic revised.
 - 0.2a KSP 1.1 Supported. Button changed from Toolbar to KSP.
 - 0.1a Prototype released

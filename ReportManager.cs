@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 namespace Kistory
@@ -17,7 +18,7 @@ namespace Kistory
 
         public Kistory Kistory; 
 
-        private List<Mission> missions = new List<Mission>();
+        private static List<Mission> missions = new List<Mission>();
 
         private bool _situationRunning = false;
         public EntryCorutine objCorutine = new EntryCorutine();
@@ -83,7 +84,20 @@ namespace Kistory
 
             GameEvents.onStageActivate.Add(this.on_stage);
             //EventData<Contracts.Contract> GameEvents.Contract.onFinished
+
+            // Atempt to work with individual scence
+            //SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+
+
+            // Load the manager and the game
+            // on_start_load();
         }
+
+        /*private void SceneManager_activeSceneChanged(Scene arg0, Scene arg1)
+        {
+            KDebug.Log("Scene change:" + arg0.name + " -> " + arg1.name, KDebug.Type.MONO);
+            throw new NotImplementedException();
+        }*/
         #endregion
 
         #region Evet Processing
@@ -166,7 +180,7 @@ namespace Kistory
                 var nodeKistory = node.AddNode("Kistory");
 
                 // Walk thought all missions                        
-                foreach (Mission M in this.missions)
+                foreach (Mission M in missions)
                 {
                     // this is only Mission parameters
                     var nodeMission = nodeKistory.AddNode("Mission");
@@ -188,6 +202,19 @@ namespace Kistory
                 }
             }
         }
+        // Load the save file on the start (if it has not been done)
+        /*private void on_start_load()
+        {
+            ConfigNode node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "saves/" + HighLogic.fetch.GameSaveFolder + "/persistent.sfs");
+            if(!isLoaded)
+                on_game_load(node);
+        }
+        // Save the data on change scence due to destroy. 
+        private void on_end_save()
+        {
+            ConfigNode node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "saves/" + HighLogic.fetch.GameSaveFolder + "/persistent.sfs");
+            on_game_save(node);
+        }*/
 
         // Events
         private void on_create(Vessel ves) // Triggered by creating a new vessel. Apparantelly we create a new mission. However, decoupling also create the new mission. Unfortunatelly, we cannot find the name here.
@@ -463,12 +490,12 @@ namespace Kistory
         // Return list of the mission. Used to display mission
         public List<Mission> get_missions()
         {
-            return this.missions;
+            return missions;
         }
 
         public List<Mission> get_reverse_missions()
         {
-            List<Mission> reverse = this.missions;
+            List<Mission> reverse = missions;
             reverse.Reverse();
             return reverse;
         }
@@ -478,8 +505,8 @@ namespace Kistory
         {
             // check the mission index...
             // I'm not sure that this is the right way to do that
-            if (this.missions[index] != null)
-                return this.missions[index];
+            if (missions[index] != null)
+                return missions[index];
 
             return null;
         }
@@ -502,7 +529,7 @@ namespace Kistory
         //       
         private Mission find_the_mission(Guid id)
         {
-            foreach (Mission mission in this.missions)
+            foreach (Mission mission in missions)
                 if (mission.missionId == id)
                 {
                     KDebug.Log("Mission found: " + id.ToString(), KDebug.Type.EVENT);
@@ -539,7 +566,7 @@ namespace Kistory
         {
             KDebug.Log("Add mission from Report by Mission: " + M.get_name(), KDebug.Type.CREATE);
             if(!this.is_missionId_exists(M))
-                this.missions.Add(M);
+                missions.Add(M);
             else
             {
                 KDebug.Log("Mission already exists: " + M.get_name(), KDebug.Type.CREATE);
@@ -553,7 +580,7 @@ namespace Kistory
         }
         private Boolean is_missionId_exists(Guid id)
         {
-            foreach(Mission M in this.missions)
+            foreach(Mission M in missions)
             {
                 if (M.missionId == id) return true;
             }
@@ -714,12 +741,15 @@ namespace Kistory
         public void clear_missions()
         {
             KDebug.Log("Clear missions", KDebug.Type.EVENT);   
-            this.missions.Clear();
+            missions.Clear();
         }
 
         // Calld in the descructor of the Kistory plugin
         public void clear()
         {
+            // save changes before die
+            // on_end_save();
+
             GameEvents.onGUIApplicationLauncherReady.Remove(this.add_button); // add
             GameEvents.onGUIApplicationLauncherUnreadifying.Remove(this.remove_button); // remove
 
