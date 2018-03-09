@@ -5,16 +5,16 @@ using UnityEngine;
 
 namespace Kistory
 {
-    [KSPAddon(KSPAddon.Startup.MainMenu, true)]  
+    
+    [KSPAddon(KSPAddon.Startup.Flight, false)]     
     public class Kistory : MonoBehaviour
     {
         // Main class it is a wrapper for plugin
         
-        private static ReportManager report; // Singlton that works with reports, missions, messages
-        private WindowManager _windows;      // Draw window and button for toolbar
-        
+        private ReportManager report;   // Not-Singlton that works with reports, missions, messages
+        private WindowManager _windows; // Draw window and button for toolbar
 
-         //screeshot message, ass a second so it not interfier with the game
+         //screeshot message, as a second so it not interfier with the game
         private DateTime eventTime;
 
         // Run once at the mode loading
@@ -23,10 +23,10 @@ namespace Kistory
             // it might help
             //ReportManager report = gameObject.AddComponent<ReportManager>();
 
-            report = ReportManager.Instance(); // Call the instance
-            report.Kistory = this; // We need this for corutines
+            this.report = new ReportManager(); // Create the instance
+            this.report.Kistory = this; // We need this for corutines
 
-            _windows = new WindowManager(); // we need this to draw interface
+            this._windows = new WindowManager(report); // we need this to draw interface
             
             this.eventTime = DateTime.Now; // ?
 
@@ -36,32 +36,15 @@ namespace Kistory
         // Load before the first frame
         public void Start()
         {
-            DontDestroyOnLoad(this); // We will try to prevent the mode restart
-        }
-
- 
-        // Calls if this.enabled = true;
-        public void OnEnable()
-        {
-            
-        }
-
-        // Calls id this.enabled = false;
-        public void OnDisable()
-        { 
-        
-        }
-
-        // Calls on each step
-        void Update()
-        {
-
+            KDebug.Log("Start", KDebug.Type.MONO);
+            //gameObject.AddComponent<Kistory>(); // This is taken from AssemblyReloader manual
+            // DontDestroyOnLoad(this); // We will try to prevent the mode restart
         }
 
         // Calls on each draw step, more often than Update()
         void OnGUI()
-        {            
-            _windows.OnDraw();
+        {
+            this._windows.OnDraw();
         }
 
         // .. dispose
@@ -69,12 +52,16 @@ namespace Kistory
         {
             KDebug.Log("OnDestroy", KDebug.Type.MONO);
 
-            //if(this._windows != null)
-            //   this._windows.Destroy();
+            if(this._windows != null)
+               this._windows.Close();
 
             KDebug.Log("OnDestroy events", KDebug.Type.MONO);
-            if (report != null)
-                report.clear();
+            if (this.report != null)
+                this.report.clear();
+
+            //this.report.destroy();
+
+            //Destroy(gameObject); // Cleanup. This is taken from AssemblyReloader manual
         }
 
         public void ShowWindow() 
@@ -98,7 +85,8 @@ namespace Kistory
             //this._situationRunning = true;
             yield return new WaitForSeconds(waitTime);
             KDebug.Log("post add_delayed_event", KDebug.Type.CORUTINE);
-            report.add_situation_event(data.situation, data.ves, data.message, data.vessel_situation);
+            data.report.add_situation_event(data.situation, data.ves, data.message, data.vessel_situation);
+            KDebug.Log("after add_delayed_event", KDebug.Type.CORUTINE);
         }
 
         // This corutine add event imideatelly and add photo later        
@@ -164,8 +152,25 @@ namespace Kistory
             return eventTime.Year.ToString() + eventTime.Month.ToString() + eventTime.Day.ToString() + eventTime.Hour.ToString() + eventTime.Minute.ToString() + eventTime.Second.ToString();
         }
 
+        #region not_in_use                
+        public void OnEnable()
+        {
 
+        }
+
+        // Calls id this.enabled = false;
+        public void OnDisable()
+        {
+
+        }
+
+        // Calls on each step
+        void Update()
+        {
+
+        }
         /////  not in use at the moment...
+        // Calls if this.enabled = true;
         /*
         private void make_screenshot(String type)
         {
@@ -199,8 +204,7 @@ namespace Kistory
             Application.CaptureScreenshot(fileName);
         }
        */
-
-
+        #endregion not_in_use
     }
 
 

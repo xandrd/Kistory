@@ -12,5 +12,6 @@ namespace Kistory
         public Vessel ves;
         public Entry.Situations situation;
         public Vessel.Situations vessel_situation;
+        public ReportManager report;
     }
 }

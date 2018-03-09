@@ -11,9 +11,10 @@ namespace Kistory
     class WindowManager
     {
 
-        private static ReportManager report = ReportManager.Instance(); // Manager 
+        //private static ReportManager report = ReportManager.Instance(); // Manager 
+        // private IButton toolButton; // toolbar button object
 
-       // private IButton toolButton; // toolbar button object
+        private ReportManager report;
 
         private bool _windowMainIsOpen, _windowSecondIsOpen, _windowConfirmIsOpen; // flag to check if the window is open
         
@@ -36,12 +37,13 @@ namespace Kistory
 
         private String stringEntryToAdd;
 
-        public WindowManager()
+        public WindowManager(ReportManager r)
         {
             // Close windows by default
             _windowMainIsOpen = false;
             _windowSecondIsOpen = false;
             _windowConfirmIsOpen = false;
+            this.report = r;
 
             /*
             // regular button from Toolbar

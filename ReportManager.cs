@@ -24,20 +24,24 @@ namespace Kistory
 
         private static ApplicationLauncherButton button;
 
+        private bool isLoaded = false; // Indicates if the game was loaded. We don't save the game before load
+
         // Singlton
-        private static volatile ReportManager instance;        
+        //private static volatile ReportManager instance;        
+        /*private static volatile ReportManager instance;        
         public static ReportManager Instance()
         {
             if (instance == null)
             {
-                instance = new ReportManager();
+                KDebug.Log("ReportManager Instance()", KDebug.Type.MONO);
+                this.instance = new ReportManager();
                 //instance = new GameObject("ReportManager").AddComponent<ReportManager>();
             }
             return instance;
-        }
+        }*/
 
         #region Event Subscribe
-        private ReportManager()
+        public ReportManager()
         {
             KDebug.Log("New ReportManager Created", KDebug.Type.EVENT);
             // == Add and remove button == //
@@ -86,10 +90,11 @@ namespace Kistory
 
         // Save Load
         private void on_game_load(ConfigNode nodeGame)
-        {
+        {            
             if (nodeGame != null)
             {
                 KDebug.Log("Loading game...", KDebug.Type.LOAD);
+                this.isLoaded = true;
                 this.clear_missions();
 
                 // REPORT
@@ -153,33 +158,35 @@ namespace Kistory
         }
         private void on_game_save(ConfigNode node)
         {
-            KDebug.Log("on_game_save node", KDebug.Type.LOAD);
-
-            // Mod node
-            var nodeKistory = node.AddNode("Kistory");
-
-            // Walk thought all missions                        
-            foreach (Mission M in this.missions)
+            if (isLoaded) // Save note only if the game was loaded before
             {
-                // this is only Mission parameters
-                var nodeMission = nodeKistory.AddNode("Mission");
-                nodeMission.AddValue("missionId", M.missionId);
-                nodeMission.AddValue("missionName", M.get_name());
-                nodeMission.AddValue("missionTime", M.get_time());
-                nodeMission.AddValue("missionSituation", M.get_situation());                
+                KDebug.Log("on_game_save node", KDebug.Type.LOAD);
 
-                // Walk thought all messages of the mission
-                foreach (Entry E in M.get_entries())
+                // Mod node
+                var nodeKistory = node.AddNode("Kistory");
+
+                // Walk thought all missions                        
+                foreach (Mission M in this.missions)
                 {
-                    var nodeEntry = nodeMission.AddNode("Entry");
-                    nodeEntry.AddValue("situation", E.get_situation());
-                    nodeEntry.AddValue("message", E.get_message()); 
-                    nodeEntry.AddValue("time", E.get_time()); 
-                    if(E.has_screeshot)
-                        nodeEntry.AddValue("screenshot", E.get_screenshot());
+                    // this is only Mission parameters
+                    var nodeMission = nodeKistory.AddNode("Mission");
+                    nodeMission.AddValue("missionId", M.missionId);
+                    nodeMission.AddValue("missionName", M.get_name());
+                    nodeMission.AddValue("missionTime", M.get_time());
+                    nodeMission.AddValue("missionSituation", M.get_situation());
+
+                    // Walk thought all messages of the mission
+                    foreach (Entry E in M.get_entries())
+                    {
+                        var nodeEntry = nodeMission.AddNode("Entry");
+                        nodeEntry.AddValue("situation", E.get_situation());
+                        nodeEntry.AddValue("message", E.get_message());
+                        nodeEntry.AddValue("time", E.get_time());
+                        if (E.has_screeshot)
+                            nodeEntry.AddValue("screenshot", E.get_screenshot());
+                    }
                 }
             }
-
         }
 
         // Events
@@ -609,16 +616,17 @@ namespace Kistory
             KDebug.Log("add_situation_event: " + message, KDebug.Type.CORUTINE);
 
             Mission M = this.find_the_mission(ves);
-            if (M != null & M.get_situation() != situation)
+            if (M != null)
             {
-                KDebug.Log("situation change from : " + M.get_situation().ToString() + " to: " + situation.ToString(), KDebug.Type.EVENT);
-                M.set_situation(situation);
-                if (ves.Landed)
-                    message = message + " at: " + FlightGlobals.currentMainBody.name + " (" + FlightGlobals.currentMainBody.BiomeMap.GetAtt(ves.latitude * Mathf.Deg2Rad, ves.longitude * Mathf.Deg2Rad).name + ")";
-
-                M.add_entry(S, ves, message);
+                if (M.get_situation() != situation)
+                {                
+                    KDebug.Log("situation change from : " + M.get_situation().ToString() + " to: " + situation.ToString(), KDebug.Type.EVENT);
+                    M.set_situation(situation);
+                    if (ves.Landed)
+                        message = message + " at: " + FlightGlobals.currentMainBody.name + " (" + FlightGlobals.currentMainBody.BiomeMap.GetAtt(ves.latitude * Mathf.Deg2Rad, ves.longitude * Mathf.Deg2Rad).name + ")";
+                    M.add_entry(S, ves, message);
+                }
             }
-
         }
 
         // Add message from coroutine with photo
@@ -646,6 +654,7 @@ namespace Kistory
             this.objCorutine.message = message;
             this.objCorutine.vessel_situation = situation;
             this.objCorutine.situation = S;
+            this.objCorutine.report = this;
 
             if (this._situationRunning)
             {
@@ -664,7 +673,8 @@ namespace Kistory
             KDebug.Log("manage_photo_corutine", KDebug.Type.CORUTINE);
             this.objCorutine.ves = ves;
             this.objCorutine.message = message;
-            this.objCorutine.situation = S;            
+            this.objCorutine.situation = S;
+            this.objCorutine.report = this;
             Kistory.StartCoroutine("add_event_and_delayed_photo", this.objCorutine);
         }
 
@@ -729,8 +739,6 @@ namespace Kistory
             GameEvents.onCrewOnEva.Remove(this.on_EVA);
 
 
-
-
             GameEvents.onPartDie.Remove(this.on_destroyed); 
             GameEvents.onPartExplode.Remove(this.on_explode);
 
@@ -745,5 +753,11 @@ namespace Kistory
         }
 
         #endregion
+
+        public void destroy()
+        {            
+            //this.instance = null;
+        }
+
     }
 }
