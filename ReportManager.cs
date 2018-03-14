@@ -16,7 +16,7 @@ namespace Kistory
     class ReportManager
     {
 
-        public Kistory Kistory; 
+        public Kistory kistory; 
 
         private static List<Mission> missions = new List<Mission>();
 
@@ -60,23 +60,42 @@ namespace Kistory
 
             //GameEvents.onNewVesselCreated.Add(this.on_new_create);
             GameEvents.onVesselRecovered.Add(this.on_recovered);
+            // Consider GameEvents.VesselSituation.onReturnFromOrbit // Fired when a vessel returns from orbiting on a celestial body (?)
+            // Consider GameEvents.VesselSituation.onReturnFromSurface // Fired when a vessel returns from landing on a celestial body (?)
 
             //GameEvents.onVesselRename.Add(this.on_detached_rename);
             //GameEvents.onVesselChange.Add(this.on_vessel_changed);
 
+            // CREW
+            // TBC - To Be Changed
             GameEvents.onCrewBoardVessel.Add(this.on_board); // Kerbal board to the mission Vessel (active vessel is Kerbal)
+            // TBC - To Be Changed
             GameEvents.onCrewKilled.Add(this.on_killed);     // Kerbal died. Mission will not be found if Kerbal died outside the Vessel
+            // TBC - To Be Changed
+            GameEvents.onCrewOnEva.Add(this.on_EVA); // EVA
 
             // === Events with Active Vessel === //
             KDebug.Log("Events with Active Vessel", KDebug.Type.EVENT);
-            GameEvents.onLaunch.Add(this.on_launch); // Squad calls this Liftof! 
+            // TBC - To Be Changed
+            //GameEvents.onLaunch.Add(this.on_launch); // Squad calls this Liftof! 
+            // Alternative  
+            GameEvents.VesselSituation.onLaunch.Add(this.on_launch);
 
-            GameEvents.onCrewOnEva.Add(this.on_EVA); // EVA
+            // GameEvents.onVesselDocking.Add(on_dock); // TBD in KSP 1.4
+
             
             GameEvents.onPartDie.Add(this.on_destroyed); // Scructural damage, part destroyed.
             GameEvents.onPartExplode.Add(this.on_explode); // When exposion happens we may take the awesomness. We not going to use this feature now.
 
+            GameEvents.onVesselDestroy.Add(this.on_crash); // Vessel is destroyed.
+
             GameEvents.onVesselSituationChange.Add(this.on_situation);
+            // Consider GameEvents.VesselSituation.onLand // Fired when a vessel lands on a celestial body
+            // Consider GameEvents.VesselSituation.onOrbit // Fired when a vessel achieves orbit around a celestial body
+            // Consider GameEvents.VesselSituation.onReachSpace // 	Fired when a vessel reaches space
+            // Consider GameEvents.VesselSituation.onEscape  //Fired when a vessel escapes from a celestial body
+            // Consider GameEvents.VesselSituation.onFlyBy  // Fired when a vessel starts a flyby past a celestial body
+
 
             GameEvents.onVesselSOIChanged.Add(this.on_soi);
 
@@ -349,11 +368,23 @@ namespace Kistory
         */
         #endregion
 
-        private void on_launch(EventReport data) // Triggered on launch
+        private void on_launch(EventReport data) // Triggered on launch (old version)
         {
             KDebug.Log("on_launch", KDebug.Type.CREATE);
             this.manage_photo_corutine(Entry.Situations.LAUNCH, FlightGlobals.ActiveVessel, "");
             //this.make_screenshot("Launch");
+        }
+
+        private void on_launch(Vessel ves) // Triggered on launch
+        {
+            KDebug.Log("on_launch", KDebug.Type.CREATE);
+            this.manage_photo_corutine(Entry.Situations.LAUNCH, FlightGlobals.ActiveVessel, ""); // It seems like we need to use ActiveVessel to create corutine(!)
+            //this.make_screenshot("Launch");
+        }
+
+        private void on_dock(EventData<uint, uint> data)
+        {
+            KDebug.Log("on_dock + Event name" + data.EventName);
         }
 
         private void on_EVA(GameEvents.FromToAction<Part, Part> data)
@@ -416,20 +447,21 @@ namespace Kistory
             }
         }
 
-        // I'm not sure when this event happens
-        private void on_crash(EventReport data)
-        {
-            // Happens even before Launch
-            if(data.origin != null)
-            { 
-                KDebug.Log("explosionPotential  " + data.origin.explosionPotential.ToString(), KDebug.Type.EVENT);
-                KDebug.Log("flightID  " + data.origin.flightID, KDebug.Type.EVENT);
-                KDebug.Log("launchID  " + data.origin.launchID, KDebug.Type.EVENT);
-                KDebug.Log("missionID  " + data.origin.missionID, KDebug.Type.EVENT);
-            }
+        // We will use this even if the Vessal is destroyed
+        private void on_crash(Vessel ves) // TBD
+        {            
+            if(ves != null) // Many additional conditions are needed to be check (maybe at least ves.isloaded??)
+            {               
+                if(ves.loaded) // This should help!
+                {
+                    KDebug.Log("Crashed (destroyed) flightID  " + ves.id + " Name " + ves.name, KDebug.Type.EVENT);
+                    this.add_event(Entry.Situations.CRASH, ves, ""); // It will find the mission first
+                }
+                    
 
+            }
             KDebug.Log("on_crash", KDebug.Type.EVENT);            
-            this.add_event(Entry.Situations.CRASH,""); 
+            
         }
 
         private void on_situation( GameEvents.HostedFromToAction< Vessel, Vessel.Situations > data)
@@ -440,7 +472,9 @@ namespace Kistory
                     KDebug.Log("on_situation: " +  data.host.vesselName +" " + data.from.ToString() + " -> " + data.to.ToString(), KDebug.Type.EVENT);
                     if (data.to != Vessel.Situations.PRELAUNCH) // bug or feature?
                         manage_corutine(Entry.Situations.SITUATION, data.host, "from " + data.from.ToString() + " to:" + data.to.ToString(), data.to);
-                    
+                    // else
+                        // KDebug.Log("on_launch from situation", KDebug.Type.CREATE); // photo corutine may be good here!
+
                 }
         }
 
@@ -687,12 +721,12 @@ namespace Kistory
             {
                 KDebug.Log("stop running corutine", KDebug.Type.CORUTINE);
 
-                Kistory.StopCoroutine("add_delayed_event");
+                kistory.StopCoroutine("add_delayed_event");
             }
 
             KDebug.Log("Start corutine", KDebug.Type.CORUTINE);
             this._situationRunning = true;
-            Kistory.StartCoroutine("add_delayed_event", this.objCorutine);
+            kistory.StartCoroutine("add_delayed_event", this.objCorutine);
         }
 
         private void manage_photo_corutine(Entry.Situations S, Vessel ves, String message)
@@ -702,7 +736,7 @@ namespace Kistory
             this.objCorutine.message = message;
             this.objCorutine.situation = S;
             this.objCorutine.report = this;
-            Kistory.StartCoroutine("add_event_and_delayed_photo", this.objCorutine);
+            kistory.StartCoroutine("add_event_and_delayed_photo", this.objCorutine); // Get NullRef Exception. I'm not sure why
         }
 
         #endregion
@@ -714,7 +748,7 @@ namespace Kistory
             //PilotAssistantFlightCore.bDisplayAssistant = true;
             KDebug.Log("New button Toggle on ", KDebug.Type.GUI);
 
-            Kistory.ShowWindow();
+            kistory.ShowWindow();
         }
 
         private void button_OnToggleFalse()
@@ -722,7 +756,7 @@ namespace Kistory
             // Code here
             //PilotAssistantFlightCore.bDisplayAssistant = false;
             KDebug.Log("New button Toggle off ", KDebug.Type.GUI);
-            Kistory.CloseWindow();
+            kistory.CloseWindow();
         }
         #endregion
 

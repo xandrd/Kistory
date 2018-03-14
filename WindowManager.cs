@@ -8,7 +8,7 @@ namespace Kistory
 {
 
     // Class for display window and button in the toolbar
-    class WindowManager
+    class WindowManager : MonoBehaviour
     {
 
         //private static ReportManager report = ReportManager.Instance(); // Manager 
@@ -141,14 +141,13 @@ namespace Kistory
             }
         } */
 
-        public void OnDraw() // onGui
+        public void OnDraw() // OnGUI() // OnDraw() // onGui
         {
 
             if (_windowMainIsOpen || _windowSecondIsOpen)
                 WindowMainOnDraw();
             if (_windowConfirmIsOpen)
                 WindowConfirmOnDraw();
-
         }
 
         private void WindowMainOnDraw() // create the window

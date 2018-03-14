@@ -40,10 +40,10 @@ namespace Kistory
             public static String RECOVERED = "Mission complete!";
                 public static String CREATEEVA = "EVA mission"; // Reserved for separate EVA missions
             public static String LAUNCH = "Lauched!";
-            public static String EVA = "Kerbal let the Vessel starting Extra-Vehicular Activity";
+            public static String EVA = "Kerbal left the Vessel starting Extra-Vehicular Activity";
             public static String KILLED = "Kerbal onboard was killed";
             public static String BOARD = "Kerbal board";
-            public static String CRASH = "Chash!";
+            public static String CRASH = "Vessel was destroied!";
             public static String DESTROYED = "Part destroyed";
             public static String EXPLODE = "Nearby explosion!";
             public static String SITUATION = "Situation changed";

@@ -24,7 +24,7 @@ namespace Kistory
             //ReportManager report = gameObject.AddComponent<ReportManager>();
 
             this.report = new ReportManager(); // Create the instance
-            this.report.Kistory = this; // We need this for corutines
+            this.report.kistory = this; // We need this for corutines
 
             this.windows = new WindowManager(report); // we need this to draw interface
             
