@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using KSP.UI.Screens;
 
 namespace Kistory
 {
@@ -15,21 +17,22 @@ namespace Kistory
         // private IButton toolButton; // toolbar button object
 
         private ReportManager report;
+        private static ApplicationLauncherButton button;
+
 
         private bool _windowMainIsOpen, _windowSecondIsOpen, _windowConfirmIsOpen; // flag to check if the window is open
         
-        private readonly int _windowMainId = UnityEngine.Random.Range(8000000, 9000000);   // unique ID for the window
+        private int _windowMainId;   // unique ID for the window        
+        private int _windowConfirmId; // unique ID for the window
         //private readonly int _windowSecondId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
-        private readonly int _windowConfirmId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
 
-        private Rect _windowMainRect = new Rect(100, 100, Screen.width * 0.5f, Screen.height * 0.7f);   // position and size
-        //private Rect _windowSecondRect = new Rect(400, 100, 800, 400); // position and size
+        private Rect _windowMainRect = new Rect(100, 100, Screen.width * 0.5f, Screen.height * 0.7f);   // position and size        
         private Rect _windowConfirmRect = new Rect(Screen.width * 0.5f - 300, Screen.height * 0.5f - 110, 300, 110); // position and size
+        //private Rect _windowSecondRect = new Rect(400, 100, 800, 400); // position and size
 
         private Vector2 _scrollMainPosition = new Vector2();   // Scroll inside the window
         private Vector2 _scrollSecondPosition = new Vector2(); // Scroll inside the window
         
-
         private int _selectedMissionIndex = 0; // Which mission to show
         private int _selectedMissionToDelete = -1; // IF we select Mission to delete, which mission?
         private int _selectedMissionToDeleteEntry = -1; // IF we select Enter to delete, which mission?
@@ -40,13 +43,23 @@ namespace Kistory
 
         private String stringEntryToAdd;
 
-        public WindowManager(ReportManager r)
+        public void Awake()
+        {
+             _windowMainId = UnityEngine.Random.Range(8000000, 9000000);   // unique ID for the window            
+            _windowConfirmId = UnityEngine.Random.Range(8000000, 9000000); // unique ID for the window
+        }
+
+        public void Start()
         {
             // Close windows by default
             _windowMainIsOpen = false;
             _windowSecondIsOpen = false;
             _windowConfirmIsOpen = false;
-            this.report = r;
+            report = gameObject.GetComponent<ReportManager>();
+
+            KDebug.Log("Add and remove button", KDebug.Type.EVENT);
+            GameEvents.onGUIApplicationLauncherReady.Add(this.add_button); // add
+            GameEvents.onGUIApplicationLauncherUnreadifying.Add(this.remove_button); // remove
 
             /*
             // regular button from Toolbar
@@ -81,20 +94,58 @@ namespace Kistory
                                   
                 }
             };*/
-            
+
         }
 
-        /*public void Destroy()
+        // Interface
+        private void add_button()
         {
-           //  toolButton.Destroy();
+            KDebug.Log("Creating the button", KDebug.Type.GUI);
+            if (ApplicationLauncher.Instance != null && button == null)
+            {
 
-            if (_windowMainIsOpen)
-                RenderingManager.RemoveFromPostDrawQueue(_windowMainId, new Callback( WindowMainOnDraw ));
+                KDebug.Log("Add button", KDebug.Type.GUI);
+                ApplicationLauncher.AppScenes VisibleInScenes = ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.MAPVIEW; //, VAB, SPH, ALWAYS
+                button = ApplicationLauncher.Instance.AddModApplication(this.Show, this.Close, null, null, null, null, VisibleInScenes, GameDatabase.Instance.GetTexture("Kistory/Kistory", false));
+            }
+        }
 
-            if (_windowConfirmIsOpen)
-                RenderingManager.RemoveFromPostDrawQueue(_windowConfirmId, new Callback( WindowConfirmOnDraw ));
-                  
+        private void remove_button(GameScenes scene)
+        {
+            if (ApplicationLauncher.Instance != null && button != null)
+            {
+                ApplicationLauncher.Instance.RemoveModApplication(button);
+            }
+        }
+
+        #region Button events
+        /*private void button_OnToggleTrue()
+        {
+            // Code here            
+            KDebug.Log("New button Toggle on ", KDebug.Type.GUI);
+
+            Show();
+        }
+
+        private void button_OnToggleFalse()
+        {
+            // Code here            
+            KDebug.Log("New button Toggle off ", KDebug.Type.GUI);
+            kistory.CloseWindow();
+        }
+
+        public void ShowWindow()
+        {
+            KDebug.Log("ShowWindow", KDebug.Type.MONO);
+            windows.Show();
+        }
+
+        public void CloseWindow()
+        {
+            KDebug.Log("CloseWindow", KDebug.Type.MONO);
+            windows.Close();
         }*/
+        #endregion
 
         public void Show()
         {            
@@ -141,7 +192,7 @@ namespace Kistory
             }
         } */
 
-        public void OnDraw() // OnGUI() // OnDraw() // onGui
+        public void OnGUI() // OnDraw() // onGui
         {
 
             if (_windowMainIsOpen || _windowSecondIsOpen)
@@ -424,5 +475,13 @@ namespace Kistory
         {
             ConfirmDeleteMessage();
         }
+
+        public void OnDestroy()
+        {
+            Close();
+            GameEvents.onGUIApplicationLauncherReady.Remove(this.add_button); // add
+            GameEvents.onGUIApplicationLauncherUnreadifying.Remove(this.remove_button); // remove
+        }
+
     }
 }

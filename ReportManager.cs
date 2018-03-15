@@ -3,27 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
 namespace Kistory
 {
-    using KSP.UI.Screens;
+
 
     // Singlton that manage the report in the game
     // Containg the missions
-    class ReportManager
+    class ReportManager : MonoBehaviour
     {
 
-        public Kistory kistory; 
+        // public Kistory kistory; 
 
         private static List<Mission> missions = new List<Mission>();
 
         private bool _situationRunning = false;
         public EntryCorutine objCorutine = new EntryCorutine();
 
-        private static ApplicationLauncherButton button;
+        //screeshot message, as a second so it not interfier with the game
+        private DateTime eventTime;
 
         private bool isLoaded = false; // Indicates if the game was loaded. We don't save the game before load
 
@@ -42,21 +44,19 @@ namespace Kistory
         }*/
 
         #region Event Subscribe
-        public ReportManager()
+        public void Awake()
         {
             KDebug.Log("New ReportManager Created", KDebug.Type.EVENT);
             // == Add and remove button == //
-            KDebug.Log("Add and remove button", KDebug.Type.EVENT);
-            GameEvents.onGUIApplicationLauncherReady.Add(this.add_button); // add
-            GameEvents.onGUIApplicationLauncherUnreadifying.Add(this.remove_button); // remove
+
 
             KDebug.Log("Events No Active Vessel", KDebug.Type.EVENT);
             // === Event No Active Vessel (?) === //
             GameEvents.onGameStateLoad.Add(this.on_game_load); // Load Kistory from the save file
             GameEvents.onGameStateSave.Add(this.on_game_save); // Save Kistory to the save file
 
-            GameEvents.onVesselCreate.Add(this.on_create); // When Vessel is created and there is no existing mission - create mission
-            GameEvents.onVesselLoaded.Add(this.on_vessel_loaded);
+            GameEvents.onVesselCreate.Add(on_create); // When Vessel is created and there is no existing mission - create mission
+            GameEvents.onVesselLoaded.Add(on_vessel_loaded);
 
             //GameEvents.onNewVesselCreated.Add(this.on_new_create);
             GameEvents.onVesselRecovered.Add(this.on_recovered);
@@ -68,28 +68,28 @@ namespace Kistory
 
             // CREW
             // TBC - To Be Changed
-            GameEvents.onCrewBoardVessel.Add(this.on_board); // Kerbal board to the mission Vessel (active vessel is Kerbal)
+            GameEvents.onCrewBoardVessel.Add(on_board); // Kerbal board to the mission Vessel (active vessel is Kerbal)
             // TBC - To Be Changed
-            GameEvents.onCrewKilled.Add(this.on_killed);     // Kerbal died. Mission will not be found if Kerbal died outside the Vessel
+            GameEvents.onCrewKilled.Add(on_killed);     // Kerbal died. Mission will not be found if Kerbal died outside the Vessel
             // TBC - To Be Changed
-            GameEvents.onCrewOnEva.Add(this.on_EVA); // EVA
+            GameEvents.onCrewOnEva.Add(on_EVA); // EVA
 
             // === Events with Active Vessel === //
             KDebug.Log("Events with Active Vessel", KDebug.Type.EVENT);
             // TBC - To Be Changed
             //GameEvents.onLaunch.Add(this.on_launch); // Squad calls this Liftof! 
             // Alternative  
-            GameEvents.VesselSituation.onLaunch.Add(this.on_launch);
+            GameEvents.VesselSituation.onLaunch.Add(on_launch);
 
             // GameEvents.onVesselDocking.Add(on_dock); // TBD in KSP 1.4
 
             
-            GameEvents.onPartDie.Add(this.on_destroyed); // Scructural damage, part destroyed.
-            GameEvents.onPartExplode.Add(this.on_explode); // When exposion happens we may take the awesomness. We not going to use this feature now.
+            GameEvents.onPartDie.Add(on_destroyed); // Scructural damage, part destroyed.
+            GameEvents.onPartExplode.Add(on_explode); // When exposion happens we may take the awesomness. We not going to use this feature now.
 
-            GameEvents.onVesselDestroy.Add(this.on_crash); // Vessel is destroyed.
+            GameEvents.onVesselDestroy.Add(on_crash); // Vessel is destroyed.
 
-            GameEvents.onVesselSituationChange.Add(this.on_situation);
+            GameEvents.onVesselSituationChange.Add(on_situation);
             // Consider GameEvents.VesselSituation.onLand // Fired when a vessel lands on a celestial body
             // Consider GameEvents.VesselSituation.onOrbit // Fired when a vessel achieves orbit around a celestial body
             // Consider GameEvents.VesselSituation.onReachSpace // 	Fired when a vessel reaches space
@@ -97,19 +97,12 @@ namespace Kistory
             // Consider GameEvents.VesselSituation.onFlyBy  // Fired when a vessel starts a flyby past a celestial body
 
 
-            GameEvents.onVesselSOIChanged.Add(this.on_soi);
+            GameEvents.onVesselSOIChanged.Add(on_soi);
 
-            GameEvents.Contract.onFinished.Add(this.on_contract);
+            GameEvents.Contract.onFinished.Add(on_contract);
 
-            GameEvents.onStageActivate.Add(this.on_stage);
+            GameEvents.onStageActivate.Add(on_stage);
             //EventData<Contracts.Contract> GameEvents.Contract.onFinished
-
-            // Atempt to work with individual scence
-            //SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
-
-
-            // Load the manager and the game
-            // on_start_load();
         }
 
         /*private void SceneManager_activeSceneChanged(Scene arg0, Scene arg1)
@@ -368,14 +361,14 @@ namespace Kistory
         */
         #endregion
 
-        private void on_launch(EventReport data) // Triggered on launch (old version)
+        public void on_launch(EventReport data) // Triggered on launch (old version)
         {
             KDebug.Log("on_launch", KDebug.Type.CREATE);
             this.manage_photo_corutine(Entry.Situations.LAUNCH, FlightGlobals.ActiveVessel, "");
             //this.make_screenshot("Launch");
         }
 
-        private void on_launch(Vessel ves) // Triggered on launch
+        public void on_launch(Vessel ves) // Triggered on launch
         {
             KDebug.Log("on_launch", KDebug.Type.CREATE);
             this.manage_photo_corutine(Entry.Situations.LAUNCH, FlightGlobals.ActiveVessel, ""); // It seems like we need to use ActiveVessel to create corutine(!)
@@ -495,28 +488,86 @@ namespace Kistory
             KDebug.Log("on_stage", KDebug.Type.EVENT);
             add_event(Entry.Situations.STAGE, " #" + stage.ToString());
         }
+        #endregion
 
-        // Interface
-        private void add_button()
+        #region Corutines
+
+        // Corutine add message
+        private IEnumerator add_delayed_event(EntryCorutine data)
         {
-            KDebug.Log("Creating the button", KDebug.Type.GUI);
-            if (ApplicationLauncher.Instance != null && button == null)
-            {
-                                
-                KDebug.Log("Add button", KDebug.Type.GUI);
-                ApplicationLauncher.AppScenes VisibleInScenes = ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.MAPVIEW; //, VAB, SPH, ALWAYS
-                button = ApplicationLauncher.Instance.AddModApplication(this.button_OnToggleTrue, this.button_OnToggleFalse, null, null, null, null, VisibleInScenes, GameDatabase.Instance.GetTexture("Kistory/Kistory", false));
-            }
+            KDebug.Log("pre add_delayed_event", KDebug.Type.CORUTINE);
+
+            float waitTime = 3;
+            //this._situationRunning = true;
+            yield return new WaitForSeconds(waitTime);
+            KDebug.Log("post add_delayed_event", KDebug.Type.CORUTINE);
+            data.report.add_situation_event(data.situation, data.ves, data.message, data.vessel_situation);
+            KDebug.Log("after add_delayed_event", KDebug.Type.CORUTINE);
         }
 
-        private void remove_button(GameScenes scene)
+        // This corutine add event imideatelly and add photo later        
+        private IEnumerator add_event_and_delayed_photo(EntryCorutine data)
         {
-            if (ApplicationLauncher.Instance != null && button != null)
+            KDebug.Log("pre add_event_and_delayed_photo", KDebug.Type.CORUTINE);
+            Mission M = add_event_get_mission(data.situation, data.ves, data.message);
+            if (M == null) yield break;
+
+            int iE = M.get_last_entry_index(); // we should return index that we just added
+
+            float waitTime = 1; // default wait time
+            if (data.situation == Entry.Situations.EXPLODE)
+                waitTime = 0.1f; // Faster watitime for explosion (capture cool photo)
+            yield return new WaitForSeconds(waitTime); // Now we wait
+            KDebug.Log("post add_event_and_delayed_photo", KDebug.Type.CORUTINE);
+
+
+            // We are serching for right filepath!
+            // The name of the screenshot  should be constructed!            
+            String dirName = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder;
+            var dirInfo = new System.IO.DirectoryInfo(dirName);
+            // TODO: when the game is created
+            //  if (!Directory.Exists(dirName + "/Kistory/Photo/"))
+            //{
+            //Directory.CreateDirectory(filePath + "/Kistory/Photo/");
+            //}
+            //String fileName = dirInfo.FullName + "/Kistory/Photo/" + str_eventTime() + data.situation.ToString();
+            String fileName = dirInfo.FullName + "/" + str_eventTime() + data.situation.ToString();
+
+            // Let's make sure that we don't have the file with this name
+            int cntr = 0;
+            FileInfo info = new FileInfo(fileName + cntr.ToString() + ".png");
+            while (info != null & info.Exists != false)
             {
-                ApplicationLauncher.Instance.RemoveModApplication(button);
+                cntr++;
+                info = new FileInfo(fileName + cntr.ToString() + ".png");
             }
+            fileName = fileName + cntr.ToString() + ".png";
+            KDebug.Log("filename " + fileName, KDebug.Type.CORUTINE);
+
+            KDebug.Log("Capturing screeshot for " + iE.ToString() + " in " + data.situation.ToString() + " " + fileName, KDebug.Type.CORUTINE);
+            // ScreenCapture.CaptureScreenshot("SomeLevel");
+            Application.CaptureScreenshot(fileName); // SCREEN SHOT
+            while (!File.Exists(fileName))
+            {
+                yield return null; // apparently it should make the screeshot first and then continue
+            }
+            KDebug.Log("Trasfering screeshot for " + iE.ToString() + " in " + data.situation.ToString() + " " + fileName, KDebug.Type.CORUTINE);
+            M.add_screenshot(fileName, iE);
+            StartCoroutine("delayed_message", "Screenshot captured!"); // add message that we added the screenshot with 1s delay
         }
 
+        private IEnumerator delayed_message(String message)
+        {
+            yield return new WaitForSeconds(1f);
+            ScreenMessages.PostScreenMessage(message, 1f, ScreenMessageStyle.LOWER_CENTER);
+        }
+
+        // We use this time for Screeshots
+        private String str_eventTime()
+        {
+            eventTime = DateTime.Now;
+            return eventTime.Year.ToString() + eventTime.Month.ToString() + eventTime.Day.ToString() + eventTime.Hour.ToString() + eventTime.Minute.ToString() + eventTime.Second.ToString();
+        }
         #endregion
 
         #region Get Mission
@@ -721,12 +772,12 @@ namespace Kistory
             {
                 KDebug.Log("stop running corutine", KDebug.Type.CORUTINE);
 
-                kistory.StopCoroutine("add_delayed_event");
+                StopCoroutine("add_delayed_event");
             }
 
             KDebug.Log("Start corutine", KDebug.Type.CORUTINE);
             this._situationRunning = true;
-            kistory.StartCoroutine("add_delayed_event", this.objCorutine);
+            StartCoroutine("add_delayed_event", this.objCorutine);
         }
 
         private void manage_photo_corutine(Entry.Situations S, Vessel ves, String message)
@@ -736,29 +787,12 @@ namespace Kistory
             this.objCorutine.message = message;
             this.objCorutine.situation = S;
             this.objCorutine.report = this;
-            kistory.StartCoroutine("add_event_and_delayed_photo", this.objCorutine); // Get NullRef Exception. I'm not sure why
+            StartCoroutine("add_event_and_delayed_photo", this.objCorutine); // Get NullRef Exception. I'm not sure why
         }
 
         #endregion
 
-        #region Button events
-        private void button_OnToggleTrue()
-        {
-            // Code here
-            //PilotAssistantFlightCore.bDisplayAssistant = true;
-            KDebug.Log("New button Toggle on ", KDebug.Type.GUI);
 
-            kistory.ShowWindow();
-        }
-
-        private void button_OnToggleFalse()
-        {
-            // Code here
-            //PilotAssistantFlightCore.bDisplayAssistant = false;
-            KDebug.Log("New button Toggle off ", KDebug.Type.GUI);
-            kistory.CloseWindow();
-        }
-        #endregion
 
         // (C) FinalFrontier mod
         private String get_root_path()
@@ -784,43 +818,41 @@ namespace Kistory
             // save changes before die
             // on_end_save();
 
-            GameEvents.onGUIApplicationLauncherReady.Remove(this.add_button); // add
-            GameEvents.onGUIApplicationLauncherUnreadifying.Remove(this.remove_button); // remove
+            GameEvents.onGameStateLoad.Remove(on_game_load);
+            GameEvents.onGameStateSave.Remove(on_game_save);
 
-            GameEvents.onGameStateLoad.Remove(this.on_game_load);
-            GameEvents.onGameStateSave.Remove(this.on_game_save);
+            GameEvents.onVesselCreate.Remove(on_create);
+            GameEvents.onVesselLoaded.Remove(on_vessel_loaded);
 
-            GameEvents.onVesselCreate.Remove(this.on_create);
-            GameEvents.onVesselLoaded.Remove(this.on_vessel_loaded);
-
-            GameEvents.onVesselRecovered.Remove(this.on_recovered);
+            GameEvents.onVesselRecovered.Remove(on_recovered);
 
 
-            GameEvents.onCrewBoardVessel.Remove(this.on_board);
-            GameEvents.onCrewKilled.Remove(this.on_killed);
+            GameEvents.onCrewBoardVessel.Remove(on_board);
+            GameEvents.onCrewKilled.Remove(on_killed);
 
-            GameEvents.onLaunch.Remove(this.on_launch);
-            GameEvents.onCrewOnEva.Remove(this.on_EVA);
+            //GameEvents.onLaunch.Remove(this.on_launch);
+            GameEvents.VesselSituation.onLaunch.Remove(on_launch);
+
+            GameEvents.onCrewOnEva.Remove(on_EVA);
 
 
-            GameEvents.onPartDie.Remove(this.on_destroyed); 
-            GameEvents.onPartExplode.Remove(this.on_explode);
+            GameEvents.onPartDie.Remove(on_destroyed); 
+            GameEvents.onPartExplode.Remove(on_explode);
 
-            GameEvents.onVesselSituationChange.Remove(this.on_situation);
+            GameEvents.onVesselSituationChange.Remove(on_situation);
 
-            GameEvents.onVesselSOIChanged.Remove(this.on_soi);
+            GameEvents.onVesselSOIChanged.Remove(on_soi);
 
-            GameEvents.Contract.onFinished.Remove(this.on_contract);
+            GameEvents.Contract.onFinished.Remove(on_contract);
 
-            GameEvents.onStageActivate.Remove(this.on_stage);
-
+            GameEvents.onStageActivate.Remove(on_stage);
         }
 
         #endregion
 
-        public void destroy()
-        {            
-            //this.instance = null;
+        public void OnDestroy()
+        {
+            clear();
         }
 
     }
