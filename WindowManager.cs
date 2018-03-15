@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using KSP.UI.Screens;
 
+
 namespace Kistory
 {
 
@@ -33,10 +34,11 @@ namespace Kistory
         private Vector2 _scrollMainPosition = new Vector2();   // Scroll inside the window
         private Vector2 _scrollSecondPosition = new Vector2(); // Scroll inside the window
         
-        private int _selectedMissionIndex = 0; // Which mission to show
-        private int _selectedMissionToDelete = -1; // IF we select Mission to delete, which mission?
-        private int _selectedMissionToDeleteEntry = -1; // IF we select Enter to delete, which mission?
-        private int _selectedEntryToDelete = -1; // Selected entry to delete
+        private int  _selectedMissionIndex = 0; // Which mission to show
+        private int  _selectedMissionToDelete = -1; // IF we select Mission to delete, which mission?
+        private int  _selectedMissionToDeleteEntry = -1; // IF we select Enter to delete, which mission?
+        private int  _selectedEntryToDelete = -1; // Selected entry to delete
+        private bool _selectedPhotoEntrly = false; // Selected entry to delete
 
         private int _selectedScrollImage = -1; // This is the indication of the selected image that changes to scroll view
         private Vector2 _imageScrollPosition;
@@ -58,8 +60,8 @@ namespace Kistory
             report = gameObject.GetComponent<ReportManager>();
 
             KDebug.Log("Add and remove button", KDebug.Type.EVENT);
-            GameEvents.onGUIApplicationLauncherReady.Add(this.add_button); // add
-            GameEvents.onGUIApplicationLauncherUnreadifying.Add(this.remove_button); // remove
+            GameEvents.onGUIApplicationLauncherReady.Add(this.Add_GUI_button); // add
+            GameEvents.onGUIApplicationLauncherUnreadifying.Add(this.Remove_GUI_button); // remove
 
             /*
             // regular button from Toolbar
@@ -98,7 +100,7 @@ namespace Kistory
         }
 
         // Interface
-        private void add_button()
+        private void Add_GUI_button()
         {
             KDebug.Log("Creating the button", KDebug.Type.GUI);
             if (ApplicationLauncher.Instance != null && button == null)
@@ -110,7 +112,7 @@ namespace Kistory
             }
         }
 
-        private void remove_button(GameScenes scene)
+        private void Remove_GUI_button(GameScenes scene)
         {
             if (ApplicationLauncher.Instance != null && button != null)
             {
@@ -161,6 +163,7 @@ namespace Kistory
             _windowMainIsOpen = false;
             _windowSecondIsOpen = false;
             _windowConfirmIsOpen = false;
+            _selectedPhotoEntrly = false;
         }
 
       /*  public void ToggleWindow()
@@ -240,28 +243,8 @@ namespace Kistory
 
                 GUILayout.FlexibleSpace();
                 // Button
-                if (GUILayout.Button("Show"))
-                {
-                    KDebug.Log("Show button clicked", KDebug.Type.GUI);
-                    if (!_windowSecondIsOpen)
-                    {
-                        KDebug.Log("close main window open second", KDebug.Type.GUI);
-                        stringEntryToAdd = ""; // Clear the add string
-                        _selectedMissionIndex = report.get_missions().IndexOf(M);
-                        _windowSecondIsOpen = true;
-                        _windowMainIsOpen   = false;                        
-                    }                    
-                }
-
-                if (GUILayout.Button("X")) // Delete the entire Mission
-                {
-
-                    _selectedMissionToDelete = report.get_missions().IndexOf(M); // Selected mission to delete                    
-                    KDebug.Log("Mission Delete button clicked [" + _selectedMissionToDelete.ToString() + "] ", KDebug.Type.GUI);
-                    _windowConfirmIsOpen = true;
-                    _windowSecondIsOpen = false;
-                    _windowMainIsOpen = true;
-                }
+                ShowMissionButton(M);
+                DeleteMissionButton(M);
 
                 GUILayout.EndHorizontal();
             }
@@ -280,6 +263,11 @@ namespace Kistory
             GUILayout.BeginHorizontal();
             //GUILayout.FlexibleSpace();
             stringEntryToAdd = GUILayout.TextField(stringEntryToAdd, GUILayout.ExpandWidth(true));
+
+            
+            if (report.get_mission_by_index(_selectedMissionIndex).missionId == Mission.mission_id(FlightGlobals.ActiveVessel))
+                PhotoButton();
+
             AddButton();
             BackButton();
             //CloseButton();
@@ -294,17 +282,7 @@ namespace Kistory
                 GUILayout.FlexibleSpace();
                 GUILayout.FlexibleSpace();
                 // Button
-                if (GUILayout.Button("X")) // Delete the entry
-                {
-                   
-                    _selectedMissionToDeleteEntry = _selectedMissionIndex; // IF we select Enter to delete, which mission?
-                    _selectedEntryToDelete = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E); // Selected entry to delete                    
-                    KDebug.Log("Delete button clicked [" + _selectedMissionToDeleteEntry.ToString() + "] (" + _selectedEntryToDelete.ToString() + ")", KDebug.Type.GUI);
-                    _windowConfirmIsOpen = true;
-                    //RenderingManager.AddToPostDrawQueue(_windowConfirmId, new Callback( WindowConfirmOnDraw ));
-                    //break;
-                    //PopupDialog.SpawnPopupDialog()
-                }
+                DeleteEntryButton(E);
                 GUILayout.EndHorizontal();
                 if (E.has_screeshot)
                 {
@@ -426,6 +404,82 @@ namespace Kistory
             GUI.DragWindow();
         }
 
+        private void ConfirmPhotoEntrly()
+        {
+            GUILayout.BeginVertical(GUILayout.ExpandHeight(true));
+            GUILayout.BeginArea(new Rect(5, 20, 290, 90));
+
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            GUILayout.Label("Would you like to add with photo with a message: " + stringEntryToAdd + "? The main window will close and photo will be captured in 0.5 second."); // + " " + M.missionId.ToString());
+            GUILayout.FlexibleSpace();
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+
+            //GUILayout.BeginArea(new Rect(50, 60, 200, 20));
+            if (GUILayout.Button("Photo"))
+            {
+                Close(); // close all windows
+                AddPhoto();
+                stringEntryToAdd = "";
+            }
+
+            if (GUILayout.Button("Cancel"))
+            {
+                _selectedPhotoEntrly = false;
+                if (_windowConfirmIsOpen) // this check is not neccecary... 
+                    _windowConfirmIsOpen = false;                
+            }
+            //GUILayout.EndArea();
+
+            GUILayout.EndHorizontal();
+            GUILayout.EndArea();
+
+            GUILayout.EndVertical();
+            GUI.DragWindow();
+        }
+
+        private void ShowMissionButton(Mission M)
+        {
+            if (GUILayout.Button("Show"))
+            {
+                KDebug.Log("Show button clicked", KDebug.Type.GUI);
+                if (!_windowSecondIsOpen)
+                {
+                    KDebug.Log("close main window open second", KDebug.Type.GUI);
+                    stringEntryToAdd = ""; // Clear the add string
+                    _selectedMissionIndex = report.get_missions().IndexOf(M);
+                    _windowSecondIsOpen = true;
+                    _windowMainIsOpen = false;
+                }
+            }
+        }
+        private void DeleteMissionButton(Mission M)
+        {
+            if (GUILayout.Button("X")) // Delete the entire Mission
+            {
+
+                _selectedMissionToDelete = report.get_missions().IndexOf(M); // Selected mission to delete                    
+                KDebug.Log("Mission Delete button clicked [" + _selectedMissionToDelete.ToString() + "] ", KDebug.Type.GUI);
+                _windowConfirmIsOpen = true;
+                _windowSecondIsOpen = false;
+                _windowMainIsOpen = true;
+            }
+        }
+        private void DeleteEntryButton(Entry E)
+        {
+            if (GUILayout.Button("X")) // Delete the entry
+            {
+
+                _selectedMissionToDeleteEntry = _selectedMissionIndex; // IF we select Enter to delete, which mission?
+                _selectedEntryToDelete = report.get_mission_by_index(_selectedMissionIndex).get_entries().IndexOf(E); // Selected entry to delete                    
+                KDebug.Log("Delete button clicked [" + _selectedMissionToDeleteEntry.ToString() + "] (" + _selectedEntryToDelete.ToString() + ")", KDebug.Type.GUI);
+                _windowConfirmIsOpen = true;
+                //RenderingManager.AddToPostDrawQueue(_windowConfirmId, new Callback( WindowConfirmOnDraw ));
+                //break;
+                //PopupDialog.SpawnPopupDialog()
+            }
+        }
         private void CloseButton()
         {
             if (GUILayout.Button("Close", GUILayout.ExpandWidth(false)))
@@ -453,6 +507,21 @@ namespace Kistory
                 stringEntryToAdd = "";
             }
         }
+        private void PhotoButton()
+        {
+            if (GUILayout.Button("Photo", GUILayout.ExpandWidth(false)))
+            {
+                KDebug.Log("Add photo button: ", KDebug.Type.GUI);
+                _windowConfirmIsOpen = true;
+                _selectedPhotoEntrly = true;
+            }
+        }
+
+        private void AddPhoto()
+        {
+            report.add_user_photoentry(stringEntryToAdd);
+        }
+
 
         private void WindowsMainOnGUI(int id) // draw main window
         {
@@ -473,14 +542,17 @@ namespace Kistory
 
         private void WindowsConfirmOnGUI(int id)
         {
-            ConfirmDeleteMessage();
+            if (_selectedPhotoEntrly)
+                ConfirmPhotoEntrly();
+            else
+                ConfirmDeleteMessage();
         }
 
         public void OnDestroy()
         {
             Close();
-            GameEvents.onGUIApplicationLauncherReady.Remove(this.add_button); // add
-            GameEvents.onGUIApplicationLauncherUnreadifying.Remove(this.remove_button); // remove
+            GameEvents.onGUIApplicationLauncherReady.Remove(this.Add_GUI_button); // add
+            GameEvents.onGUIApplicationLauncherUnreadifying.Remove(this.Remove_GUI_button); // remove
         }
 
     }

@@ -30,7 +30,8 @@ namespace Kistory
             SOI,
             CONTRACT,
             STAGE,
-            USER
+            USER,
+            USERPHOTO
         }
 
         private struct MissionStrings
