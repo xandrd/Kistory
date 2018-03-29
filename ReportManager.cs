@@ -74,6 +74,8 @@ namespace Kistory
             // TBC - To Be Changed
             GameEvents.onCrewOnEva.Add(on_EVA); // EVA
 
+            GameEvents.onVesselCrewWasModified.Add(on_crew_modified);
+
             // === Events with Active Vessel === //
             KDebug.Log("Events with Active Vessel", KDebug.Type.EVENT);
             // TBC - To Be Changed
@@ -87,7 +89,7 @@ namespace Kistory
             GameEvents.onPartDie.Add(on_destroyed); // Scructural damage, part destroyed.
             GameEvents.onPartExplode.Add(on_explode); // When exposion happens we may take the awesomness. We not going to use this feature now.
 
-            GameEvents.onVesselDestroy.Add(on_crash); // Vessel is destroyed.
+            // GameEvents.onVesselDestroy.Add(on_crash); // Vessel is destroyed. Is calls evey time, even when unloaded. 3 times when actually crashed.
 
             GameEvents.onVesselSituationChange.Add(on_situation);
             // Consider GameEvents.VesselSituation.onLand // Fired when a vessel lands on a celestial body
@@ -382,21 +384,38 @@ namespace Kistory
 
         private void on_EVA(GameEvents.FromToAction<Part, Part> data)
         {
+            // data.to.vessel is Kerbal and it has unique id (I think there should be an instanse of KerbalEVA somewhere after that)
             KDebug.Log("on_EVA " + data.to.vessel.vesselName + " " + data.to.vessel.rootPart.vessel.vesselName, KDebug.Type.EVENT);
-            this.add_event(Entry.Situations.EVA, data.to.vessel.vesselName);
+            // On EVA we create a new mission
+            Mission M = new Mission(data.to.vessel);
+            this.add_mission(M);
+            // this.add_event(Entry.Situations.CREATEEVA, data.to.vessel, M.get_name()); // from current
+            this.manage_photo_corutine(Entry.Situations.CREATEEVA, data.to.vessel, M.get_name()); // from current
+
+            this.add_event(Entry.Situations.EVA, data.to.vessel.vesselName); // from active 
         }
 
         private void on_killed(EventReport report)
         {
             // If Kerbin died outside the vessel we would not be able to find that.
+            // The Kebal EVA vessel has different id at this moment
             KDebug.Log("on_killed " + report.sender, KDebug.Type.EVENT);
             this.add_event(Entry.Situations.KILLED, report.sender);
         }
 
         private void on_board(GameEvents.FromToAction<Part, Part> data)
         {
+            // Kerbal has the same id as before eva
             KDebug.Log("on_board " + data.from.vessel.vesselName, KDebug.Type.EVENT);
+
+            this.add_event(Entry.Situations.ENDEVA, data.from.vessel, data.from.vessel.vesselName); // from current
             this.add_event(Entry.Situations.BOARD, data.to.vessel, data.from.vessel.vesselName);
+        }
+
+        private void on_crew_modified(Vessel ves)
+        {
+            // Event called after a vessel had its crew modified in some way (added, removed, or killed).
+            // KDebug.Log("on_crew_modified ", KDebug.Type.EVENT);
         }
 
         // Unfortunatelly, we dont know what exploded
@@ -710,8 +729,10 @@ namespace Kistory
             Mission M = this.find_the_mission(ves);
             if (M != null)
                 M.add_entry(S, ves, message);
-            else
-                add_event(S, message); // Here we will try to find active vessel
+            //  We will use only explicit missions in this call
+            // else
+            //  add_event(S, message); // Here we will try to find active vessel
+
         }
 
         // Specific add method for ProtoVessel

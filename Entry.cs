@@ -15,6 +15,7 @@ namespace Kistory
         {
             CREATE,
             CREATEEVA,
+            ENDEVA,
             DETACHED,
             RECOVERED,
             LAUNCH,
@@ -39,9 +40,10 @@ namespace Kistory
             public static String CREATE   = "The new mission";
             public static String DETACHED = "Detached mission";
             public static String RECOVERED = "Mission complete!";
-                public static String CREATEEVA = "EVA mission"; // Reserved for separate EVA missions
+            public static String CREATEEVA = "Extra-Vehicular Activity mission";
+            public static String ENDEVA = "End of Extra-Vehicular Activity mission";
             public static String LAUNCH = "Lauched!";
-            public static String EVA = "Kerbal left the Vessel starting Extra-Vehicular Activity";
+            public static String EVA = "Kerbal left the Vessel starting Extra-Vehicular Activity";            
             public static String KILLED = "Kerbal onboard was killed";
             public static String BOARD = "Kerbal board";
             public static String CRASH = "Vessel was destroied!";
@@ -237,6 +239,12 @@ namespace Kistory
                 case Situations.LAUNCH:
                     prefix = MissionStrings.LAUNCH;
                     separator = "";
+                    break;
+                case Situations.CREATEEVA:
+                    prefix = MissionStrings.CREATEEVA;
+                    break;
+                case Situations.ENDEVA:
+                    prefix = MissionStrings.ENDEVA;
                     break;
                 case Situations.EVA:
                     prefix = MissionStrings.EVA;

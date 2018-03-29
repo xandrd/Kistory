@@ -25,8 +25,9 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Structural damage
  - Creates screenshot
 - EVA
+ - Creates screenshot
 - Board from EVA
-- Kerbanaut death in the current vessel
+- Kerbal death on board or during EVA ~~in the current vessel~~
 - Change SOI
 - Record change of situation
 - Stages
@@ -53,6 +54,7 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - Landing
 - Splashing
 - Contract complete
+- Docking
 
 ### Planned features
 - Screenshot for some of of the events 
@@ -61,6 +63,7 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
  - Landing \ Splashing
   - (Desending)
  - Get to the orbit
+- ~~EVA is a separate mission~~
 - ~~Show mission and events in the same window~~
 - ~~Close window button~~
 - ~~Add event~~
@@ -74,6 +77,7 @@ Of course, I'm grateful to Squad for the amazing game that they are developing. 
 - ~~Mission does not create from the Space Center (if we loaded the saved craft)~~
 
 ## ChangeLog ##
+- 0.4.1a EVA is a separate mission
 - 0.4a Internal logic revised again. Instances are now Components and :MonoBehaviour. User can generate screenshot from the current mission.
 - 0.3a KSP 1.3.1 Supported. Screenshots are added. Internal logic revised.
 - 0.2a KSP 1.1 Supported. Button changed from Toolbar to KSP.

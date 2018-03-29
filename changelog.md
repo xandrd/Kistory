@@ -1,3 +1,21 @@
+## v0.4.1a
+
+### Events
+- EVA is a separate mission
+- on_crash (OnDestroy) event removed
+
+## v0.4a
+- Change classes to Monobehaviour
+
+### GUI
+- Click on screenshot expand it.
+- Screenshot can be added from the current mission.
+
+
+## v0.3a
+- 1.3.1 support.
+- Code reorganization.
+
 ## v0.2a
 
 ### Events
